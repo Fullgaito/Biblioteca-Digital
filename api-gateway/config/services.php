@@ -32,8 +32,8 @@ return [
     ],
 
     'microservices' => [
-        'books'      => env('BOOKS_SERVICE_URL',      'http://localhost:5001'), 
-        'categories' => env('CATEGORIES_SERVICE_URL', 'http://localhost:3001'), 
+        'books'      => env('BOOKS_SERVICE_URL',      'http://localhost:5000'), 
+        'notifications' => env('NOTIFICATIONS_SERVICE_URL', 'http://localhost:3000'), 
         'loans'      => env('LOANS_SERVICE_URL',       'http://localhost:3002'), 
         'fines'      => env('FINES_SERVICE_URL',        'http://localhost:8001'),
         'reviews'    => env('REVIEWS_SERVICE_URL',      'http://localhost:5002'),

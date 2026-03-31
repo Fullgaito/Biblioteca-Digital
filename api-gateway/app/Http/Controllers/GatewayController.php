@@ -48,7 +48,6 @@ class GatewayController extends Controller
                 'author'      => $request->author,
                 'isbn'        => $request->isbn,
                 'description' => $request->description,
-                'category_id' => $request->category_id,
             ]);
 
         return response()->json($response->json(), $response->status());
@@ -70,55 +69,6 @@ class GatewayController extends Controller
         return response()->json($response->json(), $response->status());
     }
 
-    // ── CATEGORÍAS ────────────────────────────────────────
-
-    public function getCategories(Request $request)
-    {
-        $response = Http::withHeaders($this->headersInternos($request))
-            ->get(config('services.microservices.categories') . '/categories');
-
-        return response()->json($response->json(), $response->status());
-    }
-
-    public function getCategory(Request $request, $id)
-    {
-        $response = Http::withHeaders($this->headersInternos($request))
-            ->get(config('services.microservices.categories') . "/categories/{$id}");
-
-        return response()->json($response->json(), $response->status());
-    }
-
-    public function createCategory(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:100',
-        ]);
-
-        $response = Http::withHeaders($this->headersInternos($request))
-            ->post(config('services.microservices.categories') . '/categories', [
-                'name'        => $request->name,
-                'description' => $request->description,
-            ]);
-
-        return response()->json($response->json(), $response->status());
-    }
-
-    public function updateCategory(Request $request, $id)
-    {
-        $response = Http::withHeaders($this->headersInternos($request))
-            ->put(config('services.microservices.categories') . "/categories/{$id}", $request->all());
-
-        return response()->json($response->json(), $response->status());
-    }
-
-    public function deleteCategory(Request $request, $id)
-    {
-        $response = Http::withHeaders($this->headersInternos($request))
-            ->delete(config('services.microservices.categories') . "/categories/{$id}");
-
-        return response()->json($response->json(), $response->status());
-    }
-
     // ── PRÉSTAMOS ─────────────────────────────────────────
 
     public function getLoans(Request $request)
@@ -133,6 +83,14 @@ class GatewayController extends Controller
     {
         $response = Http::withHeaders($this->headersInternos($request))
             ->get(config('services.microservices.loans') . "/loans/{$id}");
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getLoansByUser(Request $request, $userId)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.loans') . "/loans/user/{$userId}");
 
         return response()->json($response->json(), $response->status());
     }
@@ -156,14 +114,6 @@ class GatewayController extends Controller
     {
         $response = Http::withHeaders($this->headersInternos($request))
             ->put(config('services.microservices.loans') . "/loans/{$id}/return");
-
-        return response()->json($response->json(), $response->status());
-    }
-
-    public function getLoansByUser(Request $request, $userId)
-    {
-        $response = Http::withHeaders($this->headersInternos($request))
-            ->get(config('services.microservices.loans') . "/loans/user/{$userId}");
 
         return response()->json($response->json(), $response->status());
     }
@@ -246,6 +196,24 @@ class GatewayController extends Controller
         return response()->json($response->json(), $response->status());
     }
 
+    // ── NOTIFICACIONES ────────────────────────────────────
+
+    public function getNotificationsByUser(Request $request, $userId)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.notifications') . "/notifications/user/{$userId}");
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function markNotificationRead(Request $request, $id)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->put(config('services.microservices.notifications') . "/notifications/{$id}/read");
+
+        return response()->json($response->json(), $response->status());
+    }
+
     // ── FLUJOS ORQUESTADOS ────────────────────────────────
 
     public function borrowBookFlow(Request $request)
@@ -257,7 +225,7 @@ class GatewayController extends Controller
         $headers = $this->headersInternos($request);
         $userId  = $request->user()->id;
 
-        // 1. Verificar disponibilidad
+        // 1. Verificar disponibilidad del libro
         $book = Http::withHeaders($headers)
             ->get(config('services.microservices.books') . "/books/{$request->book_id}");
 
@@ -286,6 +254,15 @@ class GatewayController extends Controller
                 'available' => false,
             ]);
 
+        // 4. Notificar al usuario
+        Http::withHeaders($headers)
+            ->post(config('services.microservices.notifications') . '/notifications', [
+                'user_id' => $userId,
+                'type'    => 'loan_created',
+                'message' => "Préstamo creado para el libro {$request->book_id}",
+                'data'    => ['book_id' => $request->book_id, 'loan_id' => $loan->json('id')],
+            ]);
+
         return response()->json($loan->json(), $loan->status());
     }
 
@@ -309,7 +286,16 @@ class GatewayController extends Controller
                 'available' => true,
             ]);
 
-        // 3. Generar multa si la devolución es tardía
+        // 3. Notificar devolución
+        Http::withHeaders($headers)
+            ->post(config('services.microservices.notifications') . '/notifications', [
+                'user_id' => $loanData['user_id'],
+                'type'    => 'loan_returned',
+                'message' => "Devolución registrada para el préstamo {$loanId}",
+                'data'    => ['loan_id' => $loanId],
+            ]);
+
+        // 4. Si la devolución es tardía, generar multa y notificar
         $today   = now()->toDateString();
         $dueDate = $loanData['due_date'] ?? null;
 
@@ -320,6 +306,14 @@ class GatewayController extends Controller
                     'loan_id'     => $loanId,
                     'due_date'    => $dueDate,
                     'return_date' => $today,
+                ]);
+
+            Http::withHeaders($headers)
+                ->post(config('services.microservices.notifications') . '/notifications', [
+                    'user_id' => $loanData['user_id'],
+                    'type'    => 'fine_generated',
+                    'message' => "Se generó una multa por devolución tardía del préstamo {$loanId}",
+                    'data'    => ['loan_id' => $loanId, 'due_date' => $dueDate],
                 ]);
         }
 
