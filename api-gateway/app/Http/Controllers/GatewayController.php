@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class GatewayController extends Controller
 {
@@ -87,7 +86,14 @@ class GatewayController extends Controller
         return response()->json($response->json(), $response->status());
     }
 
-    // ── FLUJO ORQUESTADO
+    public function getReviewsByBook($bookId)
+    {
+        $response = Http::get(config('services.microservices.reviews') . "/reviews/book/{$bookId}");
+    
+        return response()->json($response->json(), $response->status());
+    }
+
+    // ── FLUJOS ORQUESTADOS ────────────────────────────────
 
     public function borrowBookFlow(Request $request)
     {
@@ -115,26 +121,43 @@ class GatewayController extends Controller
         }
 
         // 3. Marcar libro como no disponible
-        $update = Http::put(config('services.microservices.books') . "/books/{$request->book_id}", [
+        Http::put(config('services.microservices.books') . "/books/{$request->book_id}", [
             'available' => false,
-        ]);
-
-        if (!$update->successful()) {
-            // El préstamo ya se creó — logeamos pero no revertimos en esta entrega
-            Log::warning('Préstamo creado pero no se pudo actualizar disponibilidad del libro', [
-                'user_id' => $userId,
-                'book_id' => $request->book_id,
-                'loan'    => $loan->json(),
-            ]);
-        }
-
-        Log::info('Préstamo realizado correctamente', [
-            'user_id' => $userId,
-            'book_id' => $request->book_id,
         ]);
 
         return response()->json($loan->json(), $loan->status());
     }
 
+    public function returnBookFlow(Request $request, $loanId)
+    {
+        // 1. Registrar devolución
+        $loan = Http::put(config('services.microservices.loans') . "/loans/{$loanId}/return");
+
+        if (!$loan->successful()) {
+            return response()->json(['error' => 'Error al registrar devolución'], 502);
+        }
+
+        $loanData = $loan->json();
+
+        // 2. Marcar libro como disponible
+        Http::put(config('services.microservices.books') . "/books/{$loanData['book_id']}", [
+            'available' => true,
+        ]);
+
+        // 3. Si la devolución es tardía, generar multa
+        $today   = now()->toDateString();
+        $dueDate = $loanData['due_date'] ?? null;
+
+        if ($dueDate && $today > $dueDate) {
+            Http::post(config('services.microservices.fines') . '/fines', [
+                'user_id'     => $loanData['user_id'],
+                'loan_id'     => $loanId,
+                'due_date'    => $dueDate,
+                'return_date' => $today,
+            ]);
+        }
+
+        return response()->json($loanData, $loan->status());
+    }
     
 }
