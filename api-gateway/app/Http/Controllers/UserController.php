@@ -13,12 +13,16 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'cuestion' => 'required|string|max:255',
+            'answer' => 'required|string|max:255',
         ]);
         //crear usuario
         $user = User::create([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
             'password' => bcrypt($validatedData['password']),
+            'cuestion' => $request->cuestion,
+            'answer' => $request->answer,
         ]);
         // Respuesta
         return response()->json(['message' => 'User registered successfully', 'user' => $user], 201);
