@@ -7,89 +7,242 @@ use Illuminate\Support\Facades\Http;
 
 class GatewayController extends Controller
 {
-    private function headersInternos(Request $request)
+    private function headersInternos(Request $request): array
     {
         return [
-            'X-api-key' => env('INTERNAL_API_KEY'),
-            'X-User-Id'     => $request->user()->id,
-            'X-User-Email'  => $request->user()->email,
+            'X-Api-Key'    => env('INTERNAL_API_KEY'),
+            'X-User-Id'    => $request->user()->id,
+            'X-User-Email' => $request->user()->email,
             'Content-Type' => 'application/json',
         ];
     }
 
-    // Libros
+    // ── LIBROS ────────────────────────────────────────────
 
-    public function getBooks()
+    public function getBooks(Request $request)
     {
-        $response = Http::get(config('services.microservices.books') . '/books');
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.books') . '/books');
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getBook(Request $request, $id)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.books') . "/books/{$id}");
+
         return response()->json($response->json(), $response->status());
     }
 
     public function createBook(Request $request)
     {
-        $response = Http::post(config('services.microservices.books') . '/books', [
-            'title'       => $request->title,
-            'author'      => $request->author,
-            'description' => $request->description,
+        $request->validate([
+            'title'  => 'required|string|max:255',
+            'author' => 'required|string|max:255',
         ]);
 
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->post(config('services.microservices.books') . '/books', [
+                'title'       => $request->title,
+                'author'      => $request->author,
+                'isbn'        => $request->isbn,
+                'description' => $request->description,
+                'category_id' => $request->category_id,
+            ]);
+
         return response()->json($response->json(), $response->status());
     }
 
-    // Categorias
-
-    public function getCategories()
+    public function updateBook(Request $request, $id)
     {
-        $response = Http::get(config('services.microservices.categories') . '/categories');
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->put(config('services.microservices.books') . "/books/{$id}", $request->all());
+
         return response()->json($response->json(), $response->status());
     }
 
-    // Prestamos
+    public function deleteBook(Request $request, $id)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->delete(config('services.microservices.books') . "/books/{$id}");
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    // ── CATEGORÍAS ────────────────────────────────────────
+
+    public function getCategories(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.categories') . '/categories');
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getCategory(Request $request, $id)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.categories') . "/categories/{$id}");
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function createCategory(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+        ]);
+
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->post(config('services.microservices.categories') . '/categories', [
+                'name'        => $request->name,
+                'description' => $request->description,
+            ]);
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function updateCategory(Request $request, $id)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->put(config('services.microservices.categories') . "/categories/{$id}", $request->all());
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function deleteCategory(Request $request, $id)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->delete(config('services.microservices.categories') . "/categories/{$id}");
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    // ── PRÉSTAMOS ─────────────────────────────────────────
+
+    public function getLoans(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.loans') . '/loans');
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getLoan(Request $request, $id)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.loans') . "/loans/{$id}");
+
+        return response()->json($response->json(), $response->status());
+    }
 
     public function createLoan(Request $request)
     {
-        $response = Http::post(config('services.microservices.loans') . '/loans', [
-            'user_id' => $request->user_id,
-            'book_id' => $request->book_id,
+        $request->validate([
+            'book_id' => 'required',
         ]);
 
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->post(config('services.microservices.loans') . '/loans', [
+                'user_id' => $request->user()->id,
+                'book_id' => $request->book_id,
+            ]);
+
         return response()->json($response->json(), $response->status());
     }
 
-    public function returnLoan($id)
+    public function returnLoan(Request $request, $id)
     {
-        $response = Http::put(config('services.microservices.loans') . "/loans/{$id}/return");
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->put(config('services.microservices.loans') . "/loans/{$id}/return");
 
         return response()->json($response->json(), $response->status());
     }
 
-    // Multas
-
-    public function getFinesByUser($userId)
+    public function getLoansByUser(Request $request, $userId)
     {
-        $response = Http::get(config('services.microservices.fines') . "/fines/user/{$userId}");
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.loans') . "/loans/user/{$userId}");
 
         return response()->json($response->json(), $response->status());
     }
 
-    // ── REVIEWS ───────────────────────────────────────────
+    // ── MULTAS ────────────────────────────────────────────
+
+    public function getFines(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.fines') . '/fines');
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getFine(Request $request, $id)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.fines') . "/fines/{$id}");
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getFinesByUser(Request $request, $userId)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.fines') . "/fines/user/{$userId}");
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function payFine(Request $request, $id)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->put(config('services.microservices.fines') . "/fines/{$id}/pay");
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    // ── RESEÑAS ───────────────────────────────────────────
+
+    public function getReviews(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.reviews') . '/reviews');
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getReviewsByBook(Request $request, $bookId)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.reviews') . "/reviews/book/{$bookId}");
+
+        return response()->json($response->json(), $response->status());
+    }
 
     public function createReview(Request $request)
     {
-        $response = Http::post(config('services.microservices.reviews') . '/reviews', [
-            'user_id' => $request->user_id,
-            'book_id' => $request->book_id,
-            'rating'  => $request->rating,
-            'comment' => $request->comment,
+        $request->validate([
+            'book_id' => 'required',
+            'rating'  => 'required|integer|min:1|max:5',
         ]);
+
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->post(config('services.microservices.reviews') . '/reviews', [
+                'user_id' => $request->user()->id,
+                'book_id' => $request->book_id,
+                'rating'  => $request->rating,
+                'comment' => $request->comment,
+            ]);
 
         return response()->json($response->json(), $response->status());
     }
 
-    public function getReviewsByBook($bookId)
+    public function deleteReview(Request $request, $id)
     {
-        $response = Http::get(config('services.microservices.reviews') . "/reviews/book/{$bookId}");
-    
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->delete(config('services.microservices.reviews') . "/reviews/{$id}");
+
         return response()->json($response->json(), $response->status());
     }
 
@@ -97,10 +250,16 @@ class GatewayController extends Controller
 
     public function borrowBookFlow(Request $request)
     {
-        $userId = $request->user()->id;
+        $request->validate([
+            'book_id' => 'required',
+        ]);
 
-        // 1. Verificar disponibilidad del libro
-        $book = Http::get(config('services.microservices.books') . "/books/{$request->book_id}");
+        $headers = $this->headersInternos($request);
+        $userId  = $request->user()->id;
+
+        // 1. Verificar disponibilidad
+        $book = Http::withHeaders($headers)
+            ->get(config('services.microservices.books') . "/books/{$request->book_id}");
 
         if (!$book->successful()) {
             return response()->json(['error' => 'Error al consultar el libro'], 502);
@@ -111,53 +270,59 @@ class GatewayController extends Controller
         }
 
         // 2. Crear préstamo
-        $loan = Http::post(config('services.microservices.loans') . '/loans', [
-            'user_id' => $userId,
-            'book_id' => $request->book_id,
-        ]);
+        $loan = Http::withHeaders($headers)
+            ->post(config('services.microservices.loans') . '/loans', [
+                'user_id' => $userId,
+                'book_id' => $request->book_id,
+            ]);
 
         if (!$loan->successful()) {
-            return response()->json(['error' => 'Error al crear préstamo'], 502);
+            return response()->json(['error' => 'Error al crear el préstamo'], 502);
         }
 
         // 3. Marcar libro como no disponible
-        Http::put(config('services.microservices.books') . "/books/{$request->book_id}", [
-            'available' => false,
-        ]);
+        Http::withHeaders($headers)
+            ->put(config('services.microservices.books') . "/books/{$request->book_id}", [
+                'available' => false,
+            ]);
 
         return response()->json($loan->json(), $loan->status());
     }
 
     public function returnBookFlow(Request $request, $loanId)
     {
+        $headers = $this->headersInternos($request);
+
         // 1. Registrar devolución
-        $loan = Http::put(config('services.microservices.loans') . "/loans/{$loanId}/return");
+        $loan = Http::withHeaders($headers)
+            ->put(config('services.microservices.loans') . "/loans/{$loanId}/return");
 
         if (!$loan->successful()) {
-            return response()->json(['error' => 'Error al registrar devolución'], 502);
+            return response()->json(['error' => 'Error al registrar la devolución'], 502);
         }
 
         $loanData = $loan->json();
 
         // 2. Marcar libro como disponible
-        Http::put(config('services.microservices.books') . "/books/{$loanData['book_id']}", [
-            'available' => true,
-        ]);
+        Http::withHeaders($headers)
+            ->put(config('services.microservices.books') . "/books/{$loanData['book_id']}", [
+                'available' => true,
+            ]);
 
-        // 3. Si la devolución es tardía, generar multa
+        // 3. Generar multa si la devolución es tardía
         $today   = now()->toDateString();
         $dueDate = $loanData['due_date'] ?? null;
 
         if ($dueDate && $today > $dueDate) {
-            Http::post(config('services.microservices.fines') . '/fines', [
-                'user_id'     => $loanData['user_id'],
-                'loan_id'     => $loanId,
-                'due_date'    => $dueDate,
-                'return_date' => $today,
-            ]);
+            Http::withHeaders($headers)
+                ->post(config('services.microservices.fines') . '/fines', [
+                    'user_id'     => $loanData['user_id'],
+                    'loan_id'     => $loanId,
+                    'due_date'    => $dueDate,
+                    'return_date' => $today,
+                ]);
         }
 
         return response()->json($loanData, $loan->status());
     }
-    
 }
