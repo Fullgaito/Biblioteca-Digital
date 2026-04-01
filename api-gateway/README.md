@@ -1,66 +1,171 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 📚 Biblioteca Digital - Servicio de Autenticación (Laravel)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Este servicio gestiona la autenticación de usuarios dentro del sistema de biblioteca digital, incluyendo registro, inicio de sesión, cierre de sesión y recuperación de contraseña.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Tecnologías utilizadas
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+* Laravel
+* PHP
+* MySQL
+* Laravel Sanctum (Autenticación con tokens)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 📌 Endpoints disponibles
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 🔹 Registro de usuario
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+**POST** `/api/register`
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Permite crear un nuevo usuario en el sistema.
 
-## Laravel Sponsors
+#### 📥 Request
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```json
+{
+  "name": "Sergio Gaitan",
+  "email": "sergio@test.com",
+  "password": "12345678",
+  "password_confirmation": "12345678",
+  "cuestion": "color favorito",
+  "answer": "azul"
+}
+```
 
-### Premium Partners
+#### 📤 Response
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```json
+{
+  "message": "User registered successfully",
+  "user": {
+    "id": 1,
+    "name": "Sergio Gaitan",
+    "email": "sergio@test.com"
+  }
+}
+```
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 🔹 Login
 
-## Code of Conduct
+**POST** `/api/login`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Permite autenticar un usuario y obtener un token.
 
-## Security Vulnerabilities
+#### 📥 Request
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```json
+{
+  "email": "sergio@test.com",
+  "password": "12345678"
+}
+```
 
-## License
+#### 📤 Response
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```json
+{
+  "access_token": "TOKEN_GENERADO",
+  "token_type": "Bearer"
+}
+```
+
+---
+
+### 🔹 Obtener usuario autenticado
+
+**GET** `/api/me`
+
+Retorna la información del usuario autenticado.
+
+#### 🔐 Headers
+
+```
+Authorization: Bearer TOKEN_GENERADO
+```
+
+#### 📤 Response
+
+```json
+{
+  "id": 1,
+  "name": "Sergio Gaitan",
+  "email": "sergio@test.com"
+}
+```
+
+---
+
+### 🔹 Logout
+
+**POST** `/api/logout`
+
+Cierra la sesión del usuario autenticado.
+
+#### 🔐 Headers
+
+```
+Authorization: Bearer TOKEN_GENERADO
+```
+
+#### 📤 Response
+
+```json
+{
+  "message": "Cierre de sesión exitoso"
+}
+```
+
+---
+
+### 🔹 Recuperar contraseña
+
+**POST** `/api/forgot-password`
+
+Permite actualizar la contraseña mediante pregunta de seguridad.
+
+#### 📥 Request
+
+```json
+{
+  "email": "sergio@test.com",
+  "pregunta": "color favorito",
+  "respuesta": "azul",
+  "new_password": "87654321"
+}
+```
+
+#### 📤 Response
+
+```json
+{
+  "message": "Contraseña actualizada correctamente"
+}
+```
+
+---
+
+## 🧠 Arquitectura
+
+Este servicio forma parte de una arquitectura basada en **microservicios**, donde:
+
+* Laravel gestiona la autenticación
+* Otros servicios (como préstamos, libros, multas) consumen el `user_id`
+* La comunicación se realiza mediante APIs REST
+
+---
+
+## ⚠️ Notas importantes
+
+* El token debe enviarse en cada petición protegida
+* Las contraseñas se almacenan encriptadas
+* El sistema utiliza autenticación basada en tokens (Bearer)
+
+---
+
+## 📌 Autor
+
+Sergio Alejandro Gaitan Quintero

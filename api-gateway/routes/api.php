@@ -5,15 +5,15 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\GatewayController;
 
 // ── PÚBLICAS ─────────────────────────────────────────────
-Route::post('/users/register',        [UserController::class, 'register']);
-Route::post('/users/login',           [UserController::class, 'login']);
-Route::post('/users/forgot-password', [UserController::class, 'recuperarPassword']);
+Route::post('/register',        [UserController::class, 'register']);
+Route::post('/login',           [UserController::class, 'login']);
+Route::post('/forgot-password', [UserController::class, 'recuperarPassword']);
 
 // ── PROTEGIDAS ────────────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
 
     // Usuarios
-    Route::post('/users/logout', [UserController::class, 'logout']);
+    Route::post('/logout', [UserController::class, 'logout']);
     Route::get('/users/me',      [UserController::class, 'me']);
 
     // Libros
