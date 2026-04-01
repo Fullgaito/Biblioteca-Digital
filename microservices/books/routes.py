@@ -44,8 +44,9 @@ def register_routes(app):
             author=data['author'],
             isbn=data.get('isbn'),
             description=data.get('description'),
-            category_id=data.get('category_id'),
-            available=data.get('available', True)
+            category=data.get('category'),
+            available=data.get('available', True),
+            quantity=data.get('quantity', 1)
         )
         db.session.add(book)
         db.session.commit()
@@ -64,8 +65,9 @@ def register_routes(app):
         book.author = data.get('author', book.author)
         book.isbn = data.get('isbn', book.isbn)
         book.description = data.get('description', book.description)
-        book.category_id = data.get('category_id', book.category_id)
+        book.category = data.get('category', book.category)
         book.available = data.get('available', book.available)
+        book.quantity = data.get('quantity', book.quantity)
 
         db.session.commit()
         return jsonify(book.to_dict()), 200

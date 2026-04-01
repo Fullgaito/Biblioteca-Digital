@@ -10,8 +10,9 @@ class Book(db.Model):
     author      = db.Column(db.String(255), nullable=False)
     isbn        = db.Column(db.String(20), unique=True, nullable=True)
     description = db.Column(db.Text, nullable=True)
-    category_id = db.Column(db.String(50), nullable=True)   # referencia al servicio Categorías
+    category = db.Column(db.String(50), nullable=True)   # referencia al servicio Categorías
     available   = db.Column(db.Boolean, default=True, nullable=False)
+    quantity    = db.Column(db.Integer, default=1, nullable=False)  # cantidad total de ejemplares
 
     def to_dict(self):
         return {
@@ -20,7 +21,7 @@ class Book(db.Model):
             'author':      self.author,
             'isbn':        self.isbn,
             'description': self.description,
-            'category_id': self.category_id,
+            'category': self.category,
             'available':   self.available,
-            
+            'quantity':    self.quantity
         }
