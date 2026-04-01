@@ -9,7 +9,7 @@ const app = express() // Crear una instancia de Express
 app.use(express.json()) // Middleware para parsear JSON en las solicitudes
 
 // ── Conexión a MongoDB ───────────────────────────────────────────
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Conectado a MongoDB'))
     .catch(err => console.error('Error conectando a MongoDB:', err))
 
