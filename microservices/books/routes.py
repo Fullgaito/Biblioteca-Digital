@@ -78,3 +78,32 @@ def register_routes(app):
         db.session.delete(book)
         db.session.commit()
         return jsonify({'message': f'Book {id} deleted'}), 200
+    
+    @app.route('/books/<int:id>/decrement', methods=['PUT'])
+    @requiere_token
+    def decrement_book(id):
+        book = Book.query.get(id)
+
+        if not book:
+            return jsonify({'error': 'Book not found'}), 404
+
+        if book.quantity <= 0:
+            return jsonify({'error': 'No stock available'}), 400
+
+        book.quantity -= 1
+        db.session.commit()
+
+        return jsonify(book.to_dict()), 200
+    
+    @app.route('/books/<int:id>/increment', methods=['PUT'])
+    @requiere_token
+    def increment_book(id):
+        book = Book.query.get(id)
+
+        if not book:
+            return jsonify({'error': 'Book not found'}), 404
+
+        book.quantity += 1
+        db.session.commit()
+
+        return jsonify(book.to_dict()), 200
