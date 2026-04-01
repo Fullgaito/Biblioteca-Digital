@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -16,4 +19,4 @@ import routes
 routes.register_routes(app)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,use_reloader=False)

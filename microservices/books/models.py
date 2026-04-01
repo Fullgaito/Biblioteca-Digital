@@ -12,8 +12,6 @@ class Book(db.Model):
     description = db.Column(db.Text, nullable=True)
     category_id = db.Column(db.String(50), nullable=True)   # referencia al servicio Categorías
     available   = db.Column(db.Boolean, default=True, nullable=False)
-    created_at  = db.Column(db.DateTime, default=datetime)
-    updated_at  = db.Column(db.DateTime, default=datetime, onupdate=datetime)
 
     def to_dict(self):
         return {
@@ -24,6 +22,5 @@ class Book(db.Model):
             'description': self.description,
             'category_id': self.category_id,
             'available':   self.available,
-            'created_at':  self.created_at.isoformat(),
-            'updated_at':  self.updated_at.isoformat(),
+            
         }

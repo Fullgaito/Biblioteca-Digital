@@ -8,8 +8,14 @@ def requiere_token(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         api_key = request.headers.get('X-Internal-API-Key')
+        internal_api_key = os.getenv('INTERNAL_API_KEY')  
+
+        print("HEADER:", api_key)
+        print("ENV:", internal_api_key)
+
         if not api_key or api_key != internal_api_key:
             return jsonify({'error': 'Unauthorized'}), 401
+
         return f(*args, **kwargs)
     return decorated
 
