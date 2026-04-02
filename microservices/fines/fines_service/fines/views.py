@@ -5,25 +5,29 @@ from rest_framework.response import Response
 from .models import Fine
 from django.utils import timezone
 
-@api_view(['POST'])
-def create_fine(request):
-    user_id = request.data.get('user_id')
-    loan_id = request.data.get('loan_id')
-    days_late = request.data.get('days_late')
+@api_view(['GET','POST'])
+def fines_handler(request):
+    if request.method=='GET':
+        fines = Fine.objects.all()
+        return Response(list(fines.values()))
+    elif request.method=='POST':
+        user_id = request.data.get('user_id')
+        loan_id = request.data.get('loan_id')
+        days_late = request.data.get('days_late')
 
-    if not all([user_id, loan_id, days_late]):
-        return Response({'error': 'Missing fields'}, status=400)
+        if not all([user_id, loan_id, days_late]):
+            return Response({'error': 'Missing fields'}, status=400)
 
-    amount = days_late * 580
+        amount = days_late * 580
 
-    fine = Fine.objects.create(
-        user_id=user_id,
-        loan_id=loan_id,
-        days_late=days_late,
-        amount=amount
-    )
+        fine = Fine.objects.create(
+            user_id=user_id,
+            loan_id=loan_id,
+            days_late=days_late,
+            amount=amount
+        )
 
-    return Response({'message': 'Fine created', 'id': fine.id}, status=201)
+        return Response({'message': 'Fine created', 'id': fine.id}, status=201)
 
 
 @api_view(['GET'])
@@ -46,6 +50,30 @@ def pay_fine(request, id):
         fine.save()
 
         return Response({'message': 'Fine paid'})
+
+    except Fine.DoesNotExist:
+        return Response({'error': 'Not found'}, status=404)
+
+@api_view(['GET'])
+def get_all_fines(request):
+    fines = Fine.objects.all()
+    data = list(fines.values())
+    return Response(data)
+
+@api_view(['GET'])
+def get_fine(request, id):
+    try:
+        fine = Fine.objects.get(id=id)
+        data = {
+            'id': fine.id,
+            'user_id': fine.user_id,
+            'loan_id': fine.loan_id,
+            'days_late': fine.days_late,
+            'amount': fine.amount,
+            'status': fine.status,
+            'paid_at': fine.paid_at
+        }
+        return Response(data)
 
     except Fine.DoesNotExist:
         return Response({'error': 'Not found'}, status=404)
