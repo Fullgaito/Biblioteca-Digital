@@ -13,6 +13,31 @@ const authInternal = function (req, res, next) {
     next();
 };
 
+// ── GET /loans/activos ───────────────────────────────────────
+router.get('/activos', authInternal, async (req, res) => { // Obtener préstamos activos
+    try {
+        const loans = await Loan.find({ status: 'active' })
+        return res.status(200).json(loans)
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+// ── GET /loans/user/:user_id ───────────────────────────
+router.get('/user/:user_id', authInternal, async (req, res) => { // Obtener préstamos por usuario
+    try {
+        const loans = await Loan.find({ user_id: req.params.user_id })
+
+        if (loans.length === 0) {
+            return res.status(404).json({ error: 'No loans found for this user' })
+        }
+
+        return res.status(200).json(loans)
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
 // ── POST /loans ───────────────────────────────────────────────
 router.post('/', authInternal, async (req, res) => { // Registrar un nuevo préstamo
     let stockDecremented = false;
@@ -175,12 +200,12 @@ router.put('/:id/return', authInternal, async (req, res) => { // Devolver un lib
     }
 })
 
-// ── GET /loans/usuario/:user_id ───────────────────────────
-router.get('/usuario/:user_id', authInternal, async (req, res) => { // Obtener préstamos por usuario
+// ── GET /loans/:id ───────────────────────────
+router.get('/:id', authInternal, async (req, res) => { // Obtener préstamos por id
     try {
-        const loans = await Loan.find({ user_id: req.params.user_id })
+        const loans = await Loan.findById(req.params.id)
 
-        if (!loans.length) {
+        if (!loans) {
             return res.status(404).json({ error: 'No loans found for this user' })
         }
 
@@ -191,14 +216,5 @@ router.get('/usuario/:user_id', authInternal, async (req, res) => { // Obtener p
     }
 })
 
-// ── GET /loans/activos ───────────────────────────────────────
-router.get('/activos', authInternal, async (req, res) => { // Obtener préstamos activos
-    try {
-        const loans = await Loan.find({ status: 'active' })
-        return res.status(200).json(loans)
-    } catch (error) {
-        return res.status(500).json({ error: error.message })
-    }
-})
 
 module.exports = router
