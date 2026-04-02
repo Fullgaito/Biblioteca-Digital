@@ -150,7 +150,27 @@ class GatewayController extends Controller
     public function payFine(Request $request, $id)
     {
         $response = Http::withHeaders($this->headersInternos($request))
-            ->put(config('services.microservices.fines') . "/fines/{$id}/pay");
+            ->put(config('services.microservices.fines') . "/fines/{$id}/pay", [
+                'loan_id' => $request->loan_id,
+            ]);
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function createFine(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'loan_id' => 'required',
+            'days_late' => 'required|integer|min:1'
+        ]);
+
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->post(config('services.microservices.fines') . '/fines', [
+                'user_id'     => $request->user()->id,
+                'loan_id'     => $request->loan_id,
+                'days_late'   => $request->days_late,
+            ]);
 
         return response()->json($response->json(), $response->status());
     }

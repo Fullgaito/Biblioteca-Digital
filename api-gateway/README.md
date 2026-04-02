@@ -440,6 +440,130 @@ Permite registrar de forma oportuna cuando se realiza la entrega de un prestamo 
 
 ---
 
+### 🔹 Creación de Multas
+
+**POST** `/api/fines`
+
+Permite la creación de multas asociandose a un prestamo (loan) ya existente,se hace necesario conocer el id del usuario y el id del prestamo y verificar que este activo el prestamo
+
+#### 📥 Request
+
+```json
+{
+  "user_id": 2,
+  "loan_id": "69cdc5fa291d7ccc67c54308",
+  "days_late": 3
+}
+```
+
+#### 📤 Response
+
+```json
+{
+  "message": "Fine created",
+  "id": 1
+}
+```
+
+---
+
+### 🔹 Obtener listado de multas
+
+**GET** `/api/fines`
+
+Permite la obtención de las multas existentes mostrando el acumulado a pagar y el estado del mismo
+
+
+#### 📤 Response
+
+```json
+[
+  {
+    "id": 1,
+    "user_id": 2,
+    "loan_id": "69cdc5fa291d7ccc67c54308",
+    "amount": 1740,
+    "days_late": 3,
+    "status": "pending",
+    "paid_at": null
+  }
+]
+```
+
+---
+
+### 🔹 Obtener detalle de una multa en particular
+
+**GET** `/api/fines/{id}`
+
+Permite la obtención de una multa en particular pasando su id correspondiente para ver la información respecto a una multa en particular
+
+
+#### 📤 Response
+
+```json
+{
+  "id": 1,
+  "user_id": 2,
+  "loan_id": "69cdc5fa291d7ccc67c54308",
+  "days_late": 3,
+  "amount": 1740,
+  "status": "pending",
+  "paid_at": null
+}
+```
+
+---
+
+### 🔹 Obtener una multa por usuario
+
+**GET** `/api/fines/user/{user_id}`
+
+Permite la obtención de una multa que tenga un usuario en particular
+
+
+#### 📤 Response
+
+```json
+[
+  {
+    "id": 1,
+    "user_id": 2,
+    "loan_id": "69cdc5fa291d7ccc67c54308",
+    "amount": 1740,
+    "days_late": 3,
+    "status": "pending",
+    "paid_at": null
+  }
+]
+```
+
+---
+
+### 🔹 Pago de Multas
+
+**POST** `/api/fines`
+
+Una vez se haga efectivo el pago se pasa a reportar en el sistema que ya el pago fue realizado para no generar intereses y saldar la deuda
+
+#### 📥 Request
+
+```json
+{
+  "loan_id": "69cdc5fa291d7ccc67c54308"
+}
+```
+
+#### 📤 Response
+
+```json
+{
+  "message": "Fine paid"
+}
+```
+
+---
+
 ## 🧠 Arquitectura
 
 Este servicio forma parte de una arquitectura basada en **microservicios**, donde:

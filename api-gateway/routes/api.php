@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/fines/{id}',               [GatewayController::class, 'getFine']);
     Route::get('/fines/user/{userId}',      [GatewayController::class, 'getFinesByUser']);
     Route::put('/fines/{id}/pay',           [GatewayController::class, 'payFine']);
+    Route::post('/fines',                   [GatewayController::class, 'createFine']);
 
     // Reseñas
     Route::get('/reviews',                  [GatewayController::class, 'getReviews']);
