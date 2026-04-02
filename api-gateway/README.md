@@ -309,6 +309,137 @@ Permite la eliminación definitiva de un libro ya creado con su id correspondien
 
 ---
 
+### 🔹 Creación de un prestamo
+
+**POST** `/api/loans`
+
+Permite la creación de prestamos necesitando el id del usuario que lo solicita y el id del libro correspondiente
+
+#### 📥 Request
+
+```json
+{
+  "user_id":2,
+  "book_id":2
+}
+```
+
+#### 📤 Response
+
+```json
+{
+  "message": "Loan created successfully",
+  "id": "69cdc5fa291d7ccc67c54308"
+}
+```
+
+---
+
+### 🔹 Obtener los prestamos
+
+**GET** `/api/loans`
+
+Permite obtener todos los prestamos que se han realizado
+
+
+#### 📤 Response
+
+```json
+[
+  {
+    "_id": "69cd46cbcc9b4262db9cde2f",
+    "book_id": 1,
+    "user_id": 1,
+    "status": "active",
+    "loan_date": "2026-04-01T16:24:43.398Z",
+    "__v": 0
+  },
+  {
+    "_id": "69cdc5fa291d7ccc67c54308",
+    "book_id": 2,
+    "user_id": 2,
+    "status": "active",
+    "loan_date": "2026-04-02T01:27:22.024Z",
+    "__v": 0
+  }
+]
+```
+
+---
+
+### 🔹 Obtener los prestamos por id que estan en la BD
+
+**GET** `/api/loans/69cdc5fa291d7ccc67c54308`
+
+Permite obtener la información asociada a un prestamo
+
+
+#### 📤 Response
+
+```json
+{
+  "_id": "69cdc5fa291d7ccc67c54308",
+  "book_id": 2,
+  "user_id": 2,
+  "status": "active",
+  "loan_date": "2026-04-02T01:27:22.024Z",
+  "__v": 0
+}
+```
+
+---
+
+### 🔹 Obtener los prestamos por id de usuario
+
+**GET** `/api/loans/user/1`
+
+Permite obtener la información asociada a un prestamo por usuario
+
+
+#### 📤 Response
+
+```json
+[
+  {
+    "_id": "69cd46cbcc9b4262db9cde2f",
+    "book_id": 1,
+    "user_id": 1,
+    "status": "active",
+    "loan_date": "2026-04-01T16:24:43.398Z",
+    "__v": 0
+  }
+]
+```
+
+---
+
+### 🔹 Retorno de un prestamo
+
+**PUT** `/api/loans/69cd46cbcc9b4262db9cde2f/return`
+
+Permite registrar de forma oportuna cuando se realiza la entrega de un prestamo de un libro
+
+
+#### 📤 Response
+
+```json
+{
+  "message": "Book returned successfully",
+  "loan": {
+    "_id": "69cd46cbcc9b4262db9cde2f",
+    "book_id": 1,
+    "user_id": 1,
+    "status": "returned",
+    "loan_date": "2026-04-01T16:24:43.398Z",
+    "__v": 0,
+    "return_date": "2026-04-02T02:56:21.660Z"
+  },
+  "fine_created": false
+}
+```
+
+---
+
 ## 🧠 Arquitectura
 
 Este servicio forma parte de una arquitectura basada en **microservicios**, donde:
