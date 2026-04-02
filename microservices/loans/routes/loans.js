@@ -16,6 +16,7 @@ const authInternal = function (req, res, next) {
 // ── POST /loans ───────────────────────────────────────────────
 router.post('/', authInternal, async (req, res) => { // Registrar un nuevo préstamo
     let stockDecremented = false;
+    let book_id;
     try {
         const { user_id, book_id } = req.body
 
@@ -75,7 +76,7 @@ router.post('/', authInternal, async (req, res) => { // Registrar un nuevo prés
         })
 
     } catch (error) {
-        // 🔥 rollback (devolver stock)
+        // rollback (devolver stock)
         await fetch(`${process.env.FLASK_URL}/books/${book_id}/increment`, {
             method: 'PUT',
             headers: {
@@ -122,13 +123,50 @@ router.put('/:id/return', authInternal, async (req, res) => { // Devolver un lib
             return res.status(500).json({ error: 'Error updating stock' });
         }
 
+        //calcular retraso
+        const daysLate=calculateDaysLate(loan.created_at);
+
+        function calculateDaysLate(createdAt) {
+            const loanDate = new Date(createdAt);
+            const now = new Date();
+
+            const diffDays = Math.floor((now - loanDate) / (1000 * 60 * 60 * 24));
+
+            const limitDays = 7;
+
+            return diffDays > limitDays ? diffDays - limitDays : 0;
+        }
+
+        //crear multa si aplica
+
+        if(daysLate>0){
+            try {
+                await fetch(`${process.env.FINES_URL}/fines`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Internal-API-Key': process.env.INTERNAL_API_KEY
+                    },
+                    body: JSON.stringify({
+                        user_id: loan.user_id,
+                        loan_id: loan._id,
+                        days_late: daysLate
+                    })
+                });
+            } catch (error) {
+                console.error('Error creating fine:', error);
+            }
+        }
+
+        //cerrar préstamo
         loan.status = 'returned';
         loan.return_date = new Date();
         await loan.save();
 
         return res.status(200).json({
             message: 'Book returned successfully',
-            loan
+            loan,
+            fine_created: daysLate > 0
         })
         
 
