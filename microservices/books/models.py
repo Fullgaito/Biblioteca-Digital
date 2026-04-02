@@ -13,6 +13,7 @@ class Book(db.Model):
     category = db.Column(db.String(50), nullable=True)   # referencia al servicio Categorías
     available   = db.Column(db.Boolean, default=True, nullable=False)
     quantity    = db.Column(db.Integer, default=1, nullable=False)  # cantidad total de ejemplares
+    unit_price  = db.Column(db.Float, nullable=False)  # precio por unidad
 
     def to_dict(self):
         return {
@@ -23,5 +24,6 @@ class Book(db.Model):
             'description': self.description,
             'category': self.category,
             'available':   self.available,
-            'quantity':    self.quantity
+            'quantity':    self.quantity,
+            'unit_price':  self.unit_price
         }

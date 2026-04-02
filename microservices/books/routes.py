@@ -46,7 +46,8 @@ def register_routes(app):
             description=data.get('description'),
             category=data.get('category'),
             available=data.get('available', True),
-            quantity=data.get('quantity', 1)
+            quantity=data.get('quantity', 1),
+            unit_price=data.get('unit_price', 0.0)
         )
         db.session.add(book)
         db.session.commit()
@@ -68,6 +69,7 @@ def register_routes(app):
         book.category = data.get('category', book.category)
         book.available = data.get('available', book.available)
         book.quantity = data.get('quantity', book.quantity)
+        book.unit_price = data.get('unit_price', book.unit_price)
 
         db.session.commit()
         return jsonify(book.to_dict()), 200
@@ -87,10 +89,13 @@ def register_routes(app):
         if not book:
             return jsonify({'error': 'Book not found'}), 404
 
-        if book.quantity <= 0:
-            return jsonify({'error': 'No stock available'}), 400
+        data = request.get_json()
+        quantity_to_decrement = data.get('quantity', 1) if data else 1
 
-        book.quantity -= 1
+        if book.quantity < quantity_to_decrement:
+            return jsonify({'error': 'Not enough stock'}), 400
+
+        book.quantity -= quantity_to_decrement
         db.session.commit()
 
         return jsonify(book.to_dict()), 200
