@@ -121,6 +121,14 @@ class GatewayController extends Controller
         return response()->json($response->json(), $response->status());
     }
 
+    public function activos(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.loans') . '/loans/activos');
+
+        return response()->json($response->json(), $response->status());
+    }
+
     // ── MULTAS ────────────────────────────────────────────
 
     public function getFines(Request $request)
@@ -175,46 +183,40 @@ class GatewayController extends Controller
         return response()->json($response->json(), $response->status());
     }
 
-    // ── RESEÑAS ───────────────────────────────────────────
+    // ── Ventas(sales) ───────────────────────────────────────────
 
-    public function getReviews(Request $request)
+    public function createSale(Request $request)
     {
         $response = Http::withHeaders($this->headersInternos($request))
-            ->get(config('services.microservices.reviews') . '/reviews');
-
-        return response()->json($response->json(), $response->status());
-    }
-
-    public function getReviewsByBook(Request $request, $bookId)
-    {
-        $response = Http::withHeaders($this->headersInternos($request))
-            ->get(config('services.microservices.reviews') . "/reviews/book/{$bookId}");
-
-        return response()->json($response->json(), $response->status());
-    }
-
-    public function createReview(Request $request)
-    {
-        $request->validate([
-            'book_id' => 'required',
-            'rating'  => 'required|integer|min:1|max:5',
-        ]);
-
-        $response = Http::withHeaders($this->headersInternos($request))
-            ->post(config('services.microservices.reviews') . '/reviews', [
-                'user_id' => $request->user()->id,
+            ->post(config('services.microservices.sales') . '/sales', [
+                'user_id' => $request->user_id,
                 'book_id' => $request->book_id,
-                'rating'  => $request->rating,
-                'comment' => $request->comment,
+                'quantity' => $request->quantity,
             ]);
 
         return response()->json($response->json(), $response->status());
     }
 
-    public function deleteReview(Request $request, $id)
+    public function getSalesByUser(Request $request, $userId)
     {
         $response = Http::withHeaders($this->headersInternos($request))
-            ->delete(config('services.microservices.reviews') . "/reviews/{$id}");
+            ->get(config('services.microservices.sales') . "/sales/user/{$userId}");
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getSale(Request $request, $id)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.sales') . "/sales/{$id}");
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getSales(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.sales') . '/sales');
 
         return response()->json($response->json(), $response->status());
     }

@@ -36,7 +36,7 @@ return [
         'notifications' => env('NOTIFICATIONS_SERVICE_URL', 'http://localhost:3000'), 
         'loans'      => env('LOANS_SERVICE_URL',       'http://localhost:3002'), 
         'fines'      => env('FINES_SERVICE_URL',        'http://localhost:8001'),
-        'reviews'    => env('REVIEWS_SERVICE_URL',      'http://localhost:5002'),
+        'sales'    => env('SALES_SERVICE_URL',      'http://localhost:3001'),
     ],  
 
 ];

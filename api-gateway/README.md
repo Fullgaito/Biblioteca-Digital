@@ -164,7 +164,8 @@ Permite la creación de libros correspondiente al microservicio creado en Flask
   "description": "La épica historia de la familia Buendía en el remoto pueblo de Macondo, donde lo fantástico y lo real convergen en una narrativa maestra.",
   "available": true,
   "category": "Realismo Mágico",
-  "quantity": 30
+  "quantity": 20,
+  "unit_price":60000
 }
 ```
 
@@ -174,12 +175,13 @@ Permite la creación de libros correspondiente al microservicio creado en Flask
 {
   "author": "Gabriel García Márquez",
   "available": true,
-  "category": "Realismo Mágico",
-  "description": "La épica historia de la familia Buendía en el remoto pueblo de Macondo, donde lo fantástico y lo real convergen en una narrativa maestra.",
-  "id": 3,
-  "isbn": "978-0307474728",
-  "quantity": 30,
-  "title": "Cien años de soledad"
+  "category": "novela",
+  "description": "Novela icónica de la literatura latinoamericana",
+  "id": 1,
+  "isbn": "9780307474728",
+  "quantity": 20,
+  "title": "Cien años de soledad",
+  "unit_price": 60000
 }
 ```
 
@@ -204,7 +206,8 @@ Permite la obtención de libros que previamente ya fueron creados
     "id": 1,
     "isbn": "9780307474728",
     "quantity": 20,
-    "title": "Cien años de soledad"
+    "title": "Cien años de soledad",
+    "unit_price":60000
   },
   {
     "author": "Antoine de Saint-Exupéry",
@@ -214,7 +217,8 @@ Permite la obtención de libros que previamente ya fueron creados
     "id": 2,
     "isbn": "9780156012195",
     "quantity": 10,
-    "title": "El principito"
+    "title": "El principito",
+    "unit_price":42000
   },
   {
     "author": "Gabriel García Márquez",
@@ -224,7 +228,8 @@ Permite la obtención de libros que previamente ya fueron creados
     "id": 3,
     "isbn": "978-0307474728",
     "quantity": 30,
-    "title": "Cien años de soledad"
+    "title": "Cien años de soledad",
+    "unit_price":60000
   }
 ]
 ```
@@ -248,8 +253,9 @@ Permite la obtención de un libro junto a su información detallada
   "description": "Historia filosófica sobre la vida y la amistad",
   "id": 2,
   "isbn": "9780156012195",
-  "quantity": 10,
-  "title": "El principito"
+  "quantity": 9,
+  "title": "El principito",
+  "unit_price": 42000
 }
 ```
 
@@ -265,12 +271,6 @@ Permite la actualización de la información correspondiente de un libro en espe
 
 ```json
 {
-  "title": "Cien años de soledad",
-  "author": "Gabriel García Márquez",
-  "isbn": "978-0307474728",
-  "description": "La épica historia de la familia Buendía en el remoto pueblo de Macondo, donde lo fantástico y lo real convergen en una narrativa maestra.",
-  "available": true,
-  "category": "Novela",
   "quantity": 30
 }
 ```
@@ -281,12 +281,13 @@ Permite la actualización de la información correspondiente de un libro en espe
 {
   "author": "Gabriel García Márquez",
   "available": true,
-  "category": "Novela",
-  "description": "La épica historia de la familia Buendía en el remoto pueblo de Macondo, donde lo fantástico y lo real convergen en una narrativa maestra.",
-  "id": 3,
-  "isbn": "978-0307474728",
+  "category": "novela",
+  "description": "Novela icónica de la literatura latinoamericana",
+  "id": 1,
+  "isbn": "9780307474728",
   "quantity": 30,
-  "title": "Cien años de soledad"
+  "title": "Cien años de soledad",
+  "unit_price": 60000
 }
 ```
 
@@ -440,6 +441,29 @@ Permite registrar de forma oportuna cuando se realiza la entrega de un prestamo 
 
 ---
 
+### 🔹 Prestamos activos
+
+**PUT** `/api/loans/activos`
+
+Permite visualizar los prestamos que actualmente se encuentran activos
+
+
+#### 📤 Response
+
+```json
+[
+  {
+    "_id": "69cdc5fa291d7ccc67c54308",
+    "book_id": 2,
+    "user_id": 2,
+    "status": "active",
+    "loan_date": "2026-04-02T01:27:22.024Z",
+    "__v": 0
+  }
+]
+```
+
+---
 ### 🔹 Creación de Multas
 
 **POST** `/api/fines`
@@ -560,6 +584,105 @@ Una vez se haga efectivo el pago se pasa a reportar en el sistema que ya el pago
 {
   "message": "Fine paid"
 }
+```
+
+---
+
+### 🔹 Creación de una venta
+
+**POST** `/api/sales`
+
+Permite la creación de una venta vinculandose al servicio de libros
+
+#### 📥 Request
+
+```json
+{
+  "user_id":1,
+  "book_id":1,
+  "quantity":4
+}
+```
+
+#### 📤 Response
+
+```json
+{
+  "message": "Sale completed",
+  "id": "-OpFRQdYXRUIORNwxMYM",
+  "total_price": 240000
+}
+```
+
+---
+
+### 🔹 Obtener todas las ventas
+
+**GET** `/api/sales`
+
+Permite obtener todas las ventas realizadas
+
+#### 📤 Response
+
+```json
+{
+  "data": [
+    {
+      "book_id": 1,
+      "created_at": "2026-04-02T23:05:24.283Z",
+      "id": "-OpFRQdYXRUIORNwxMYM",
+      "quantity": 4,
+      "total_price": 240000,
+      "user_id": 1
+    }
+  ]
+}
+```
+
+---
+
+### 🔹 Obtener una venta
+
+**GET** `/api/sales{id}`
+
+Permite obtener el detalle de una venta en especifico,se usa el id de la venta
+
+#### 📤 Response
+
+```json
+{
+  "data": {
+    "book_id": 1,
+    "created_at": "2026-04-02T23:05:24.283Z",
+    "id": "-OpFRQdYXRUIORNwxMYM",
+    "quantity": 4,
+    "total_price": 240000,
+    "user_id": 1
+  }
+}
+```
+
+---
+
+### 🔹 Obtener una venta de un usuario en específico
+
+**GET** `/api/sales/user/{userId}`
+
+Permite obtener el detalle de una venta por un usuario en específico
+
+#### 📤 Response
+
+```json
+[
+  {
+    "book_id": 1,
+    "created_at": "2026-04-02T23:05:24.283Z",
+    "id": "-OpFRQdYXRUIORNwxMYM",
+    "quantity": 4,
+    "total_price": 240000,
+    "user_id": 1
+  }
+]
 ```
 
 ---

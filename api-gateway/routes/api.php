@@ -23,12 +23,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/books/{id}',      [GatewayController::class, 'updateBook']);
     Route::delete('/books/{id}',   [GatewayController::class, 'deleteBook']);
 
-    // Categorías
-    Route::get('/categories',          [GatewayController::class, 'getCategories']);
-    Route::get('/categories/{id}',     [GatewayController::class, 'getCategory']);
-    Route::post('/categories',         [GatewayController::class, 'createCategory']);
-    Route::put('/categories/{id}',     [GatewayController::class, 'updateCategory']);
-    Route::delete('/categories/{id}',  [GatewayController::class, 'deleteCategory']);
+    // Sales(ventas)
+    Route::get('/sales',              [GatewayController::class, 'getSales']);
+    Route::get('/sales/{id}',         [GatewayController::class, 'getSale']);
+    Route::get('/sales/user/{userId}', [GatewayController::class, 'getSalesByUser']);
+    Route::post('/sales',              [GatewayController::class, 'createSale']);
 
     // Préstamos
     Route::get('/loans',                    [GatewayController::class, 'getLoans']);
@@ -36,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/loans/user/{userId}',      [GatewayController::class, 'getLoansByUser']);
     Route::post('/loans',                   [GatewayController::class, 'createLoan']);
     Route::put('/loans/{id}/return',        [GatewayController::class, 'returnLoan']);
+    Route::get('/loans/activos',            [GatewayController::class, 'activos']);
 
     // Multas
     Route::get('/fines',                    [GatewayController::class, 'getFines']);
