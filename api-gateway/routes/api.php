@@ -14,7 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Usuarios
     Route::post('/logout', [UserController::class, 'logout']);
-    Route::get('/users/me',      [UserController::class, 'me']);
+    Route::get('/me',      [UserController::class, 'me']);
 
     // Libros
     Route::get('/books',           [GatewayController::class, 'getBooks']);

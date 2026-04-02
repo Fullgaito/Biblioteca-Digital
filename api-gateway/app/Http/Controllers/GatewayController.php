@@ -10,7 +10,7 @@ class GatewayController extends Controller
     private function headersInternos(Request $request): array
     {
         return [
-            'X-Api-Key'    => env('INTERNAL_API_KEY'),
+            'X-Internal-API-Key'    => env('INTERNAL_API_KEY'),
             'X-User-Id'    => $request->user()->id,
             'X-User-Email' => $request->user()->email,
             'Content-Type' => 'application/json',
@@ -48,6 +48,9 @@ class GatewayController extends Controller
                 'author'      => $request->author,
                 'isbn'        => $request->isbn,
                 'description' => $request->description,
+                'category' => $request->category,
+                'available'   => $request->available,
+                'quantity'    => $request->quantity,
             ]);
 
         return response()->json($response->json(), $response->status());
