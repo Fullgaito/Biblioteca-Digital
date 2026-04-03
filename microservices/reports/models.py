@@ -7,3 +7,10 @@ class reportCache(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     report_type = db.Column(db.String(50), nullable=False)
     data = db.Column(db.JSON, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'report_type': self.report_type,
+            'data': self.data
+        }

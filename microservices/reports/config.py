@@ -1,11 +1,12 @@
-import os #ACCEDER A VARIABLES DEL SO
-from dotenv import load_dotenv #IMPORTAR PARA CARGAR LAS VARIABLES DE ENTORNO
+import os
+from dotenv import load_dotenv
 
 load_dotenv()
 
 class Config:
-    #base de datos
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        'DATABASE_URL'
-    ) #CONEXION A LA BASE DE DATOS
-    SQLALCHEMY_TRACK_MODIFICATIONS = False #DESACTIVAR EL SEGUIMIENTO DE MODIFICACIONES DE SQLALCHEMY
+    MONGO_URI = os.getenv('MONGO_URI')
+    LOANS_URL = os.getenv('LOANS_URL')
+    FINES_URL = os.getenv('FINES_URL')
+    SALES_URL = os.getenv('SALES_URL')
+    INTERNAL_API_KEY = os.getenv('INTERNAL_API_KEY')
+    

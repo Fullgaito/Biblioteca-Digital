@@ -1,7 +1,7 @@
 import requests
 import os
 
-def get_books_by_id(book_id):
+def get_book_by_id(book_id):
     headers={
         "X-Internal-API-Key": os.getenv("INTERNAL_API_KEY")
     }
