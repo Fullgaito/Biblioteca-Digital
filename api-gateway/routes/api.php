@@ -44,11 +44,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/fines/{id}/pay',           [GatewayController::class, 'payFine']);
     Route::post('/fines',                   [GatewayController::class, 'createFine']);
 
-    // Reseñas
-    Route::get('/reviews',                  [GatewayController::class, 'getReviews']);
-    Route::get('/reviews/book/{bookId}',    [GatewayController::class, 'getReviewsByBook']);
-    Route::post('/reviews',                 [GatewayController::class, 'createReview']);
-    Route::delete('/reviews/{id}',          [GatewayController::class, 'deleteReview']);
+    // Reportes
+    Route::get('/reports/most-sold-books', [GatewayController::class, 'getMostSoldBooks']);
+    Route::get('/reports/total-sales',     [GatewayController::class, 'getTotalSales']);
+    Route::get('/reports/total-revenue',   [GatewayController::class, 'getTotalRevenue']);
+    Route::get('/reports/dashboard',       [GatewayController::class, 'getDashboard']);
+    Route::get('/reports/most-borrowed-books', [GatewayController::class, 'getMostBorrowedBooks']);
+    Route::get('/reports/total-loans',     [GatewayController::class, 'getTotalLoans']);
+    Route::get('/reports/top-users-fines', [GatewayController::class, 'getTopUsersFines']);
+    Route::get('/reports/total-fines',     [GatewayController::class, 'getTotalFines']);
+    Route::get('/reports/total-fines-amount', [GatewayController::class, 'getTotalFinesAmount']);
 
     // Flujos orquestados
     Route::post('/borrow',           [GatewayController::class, 'borrowBookFlow']);

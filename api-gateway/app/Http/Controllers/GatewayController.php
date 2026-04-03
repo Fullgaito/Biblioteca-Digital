@@ -221,23 +221,79 @@ class GatewayController extends Controller
         return response()->json($response->json(), $response->status());
     }
 
-    // ── NOTIFICACIONES ────────────────────────────────────
+    // ── Reports────────────────────────────────────
 
-    public function getNotificationsByUser(Request $request, $userId)
+    public function getMostBorrowedBooks(Request $request)
     {
         $response = Http::withHeaders($this->headersInternos($request))
-            ->get(config('services.microservices.notifications') . "/notifications/user/{$userId}");
+            ->get(config('services.microservices.reports') . '/reports/loans/most-borrowed-books');
 
         return response()->json($response->json(), $response->status());
     }
 
-    public function markNotificationRead(Request $request, $id)
+    public function getTotalLoans(Request $request)
     {
         $response = Http::withHeaders($this->headersInternos($request))
-            ->put(config('services.microservices.notifications') . "/notifications/{$id}/read");
+            ->get(config('services.microservices.reports') . '/reports/loans/total-loans');
 
         return response()->json($response->json(), $response->status());
     }
+
+    public function getTopUsersFines(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.reports') . '/reports/fines/top-users-fines');
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getTotalFines(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.reports') . '/reports/fines/total-fines');
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getTotalFinesAmount(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.reports') . '/reports/fines/total-fines-amount');
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getMostSoldBooks(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.reports') . '/reports/sales/most-sold-books');
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getTotalSales(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.reports') . '/reports/sales/total-sales');
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getTotalRevenue(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.reports') . '/reports/sales/total-revenue');
+
+        return response()->json($response->json(), $response->status());
+    }
+
+    public function getDashboard(Request $request)
+    {
+        $response = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.reports') . '/reports/dashboard');
+
+        return response()->json($response->json(), $response->status());
+    }    
 
     // ── FLUJOS ORQUESTADOS ────────────────────────────────
 

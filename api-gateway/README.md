@@ -687,6 +687,212 @@ Permite obtener el detalle de una venta por un usuario en específico
 
 ---
 
+
+### 🔹 Obtener los libros más vendidos
+
+**GET** `/api/reports/most-sold-books`
+
+Muestra los libros más vendidos, ordenados por cantidad de ventas, lo que puede ayudar a identificar las tendencias de compra y los títulos más populares entre los clientes.
+
+#### 📤 Response
+
+```json
+[
+  {
+    "book_id": 1,
+    "title": "Cien años de soledad",
+    "total_sales": 1
+  }
+]
+```
+
+---
+
+### 🔹 Obtener el total de ventas realizadas
+
+**GET** `/api/reports/total-sales`
+
+Muestra el total de ventas realizadas en la librería, lo que puede ayudar a evaluar el rendimiento general del negocio y la demanda de libros.
+
+#### 📤 Response
+
+```json
+{
+  "total_sales": 1
+}
+```
+
+---
+
+### 🔹 Obtener los libros más vendidos
+
+**GET** `/api/reports/total-revenue`
+
+Muestra el total de ingresos generados por las ventas de libros, lo que puede ayudar a evaluar la rentabilidad del negocio y la efectividad de las estrategias de precios y marketing.
+
+#### 📤 Response
+
+```json
+{
+  "total_revenue": 0
+}
+```
+
+---
+
+### 🔹 Obtener el total de prestamos
+
+**GET** `api/reports/total-loans`
+
+Muestra el total de préstamos realizados en la biblioteca, lo que puede ayudar a evaluar la popularidad general de los servicios de préstamo y la demanda de libros.
+
+#### 📤 Response
+
+```json
+{
+  "total_loans": 2
+}
+```
+
+---
+
+### 🔹 Obtener el total de multas generadas
+
+**GET** `api/reports/total-fines`
+
+Muestra el total de multas generadas en la biblioteca, lo que puede ayudar a evaluar la efectividad de las políticas de sanción y el comportamiento de los usuarios.
+
+#### 📤 Response
+
+```json
+{
+  "total_fines": 1
+}
+```
+
+---
+
+### 🔹 Obtener a los usarios con más multas
+
+**GET** `api/reports/top-users-fines`
+
+Muestra los usuarios con más multas, ordenados por cantidad de multas o monto total de multas, lo que puede ayudar a identificar a los usuarios que tienen un historial de incumplimiento en la devolución de libros o el pago de multas.
+
+#### 📤 Response
+
+```json
+[
+  {
+    "user_id": 2,
+    "total_fines": 1
+  }
+]
+```
+
+---
+
+### 🔹 Obtener el monto generado por las multas
+
+**GET** `api/reports/total-fines-amount`
+
+Muestra el monto total de multas generadas en la biblioteca, lo que puede ayudar a evaluar el impacto financiero de las multas y la efectividad de las políticas de sanción.
+
+#### 📤 Response
+
+```json
+{
+  "total_amount": 1740
+}
+```
+
+---
+
+### 🔹 Obtener los libros más prestados
+
+**GET** `api/reports/most-borrowed-books`
+
+Muestra los libros más prestados, ordenados por cantidad de préstamos
+
+#### 📤 Response
+
+```json
+[
+  {
+    "book_id": 1,
+    "title": "Cien años de soledad",
+    "total loans": 1
+  },
+  {
+    "book_id": 2,
+    "title": "El principito",
+    "total loans": 1
+  }
+]
+```
+
+---
+
+### 🔹 Obtener los libros más prestados
+
+**GET** `api/reports/dashboard`
+
+Muestra un resumen general de los informes de préstamos, multas y ventas, lo que puede proporcionar una visión rápida del rendimiento de la biblioteca en diferentes áreas y ayudar a identificar áreas de mejora o éxito.
+
+#### 📤 Response
+
+```json
+{
+  "loans": {
+    "top books": [
+      {
+        "book_id": 1,
+        "title": "Cien años de soledad",
+        "total loans": 1
+      },
+      {
+        "book_id": 2,
+        "title": "El principito",
+        "total loans": 1
+      }
+    ],
+    "total": {
+      "total_loans": 2
+    }
+  },
+  "fines": {
+    "top users": [
+      {
+        "user_id": 2,
+        "total_fines": 1
+      }
+    ],
+    "total": {
+      "total_fines": 1
+    },
+    "total amount": {
+      "total_amount": 1740
+    }
+  },
+  "sales": {
+    "top books": [
+      {
+        "book_id": 1,
+        "title": "Cien años de soledad",
+        "total_sales": 1
+      }
+    ],
+    "total": {
+      "total_sales": 1
+    },
+    "revenue": {
+      "total_revenue": 0
+    }
+  }
+}
+```
+
+---
+
 ## 🧠 Arquitectura
 
 Este servicio forma parte de una arquitectura basada en **microservicios**, donde:
