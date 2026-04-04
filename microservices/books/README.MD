@@ -2,20 +2,6 @@
 
 Microservicio desarrollado en **Flask** para la gestión de libros de una biblioteca digital. Este servicio forma parte de una arquitectura de microservicios y proporciona operaciones CRUD (Crear, Leer, Actualizar, Eliminar) para la entidad `Book`.
 
-## 📋 Tabla de Contenidos
-
-- [Tecnologías](#tecnologías)
-- [Arquitectura](#arquitectura)
-- [Estructura del Proyecto](#estructura-del-proyecto)
-- [Modelo de Datos](#modelo-de-datos)
-- [Instalación](#instalación)
-- [Configuración](#configuración)
-- [Migraciones de Base de Datos](#migraciones-de-base-de-datos)
-- [Uso](#uso)
-- [API Endpoints](#api-endpoints)
-- [Autenticación](#autenticación)
-- [Características](#características)
-
 ## 🚀 Tecnologías
 
 - **Python 3.11**
@@ -95,6 +81,7 @@ books/
 | `category`   | String(50)  | Categoría del libro                          | Nullable                |
 | `available`  | Boolean     | Indica si el libro está disponible           | Default: True, NOT NULL |
 | `quantity`   | Integer     | Cantidad total de ejemplares disponibles     | Default: 1, NOT NULL    |
+| `unit_price` | Float       | Precio unitario del libro                    | Nullable                |
 
 **Tabla**: `books`
 
@@ -112,6 +99,7 @@ books/
 
 1. **Clonar el repositorio** (o descomprimir el proyecto):
    ```bash
+   cd microservices
    cd books
    ```
 
@@ -163,10 +151,7 @@ DATABASE_URL=mysql+pymysql://root:@localhost/books_db
 
 ### Configuración de Base de Datos
 
-1. **Crear la base de datos en MySQL**:
-   ```sql
-   CREATE DATABASE books_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   ```
+1. **Crear la base de datos en MySQL**
 
 2. **Verificar la conexión** editando `DATABASE_URL` en el archivo `.env` según tu configuración local:
    ```
@@ -196,14 +181,6 @@ flask db migrate -m "Descripción del cambio"
 ```bash
 flask db upgrade
 ```
-
-### Historial de Migraciones
-
-El proyecto incluye las siguientes migraciones ya aplicadas:
-
-1. **`7078ac70a7cb_creacion_de_tablas.py`** - Creación inicial de la tabla `books`
-2. **`63c11c692ff8_migraciones.py`** - Migración intermedia
-3. **`e59c552cec57_modificaciones.py`** - Modificaciones al esquema
 
 ### Revertir una Migración
 
@@ -264,7 +241,8 @@ Obtiene un libro específico por su ID.
   "description": "Las aventuras de Don Quijote de la Mancha",
   "category": "Clásicos",
   "available": true,
-  "quantity": 5
+  "quantity": 5,
+  "unit_price":42000
 }
 ```
 
@@ -286,7 +264,8 @@ Crea un nuevo libro.
   "description": "La historia de la familia Buendía",
   "category": "Literatura Latinoamericana",
   "available": true,
-  "quantity": 3
+  "quantity": 3,
+  "unit_price":60000
 }
 ```
 
@@ -302,7 +281,8 @@ Crea un nuevo libro.
   "description": "La historia de la familia Buendía",
   "category": "Literatura Latinoamericana",
   "available": true,
-  "quantity": 3
+  "quantity": 3,
+  "unit_price":60000
 }
 ```
 
@@ -334,7 +314,8 @@ Actualiza un libro existente.
   "description": "Las aventuras de Don Quijote de la Mancha",
   "category": "Clásicos",
   "available": true,
-  "quantity": 10
+  "quantity": 10,
+  "unit_price":42000
 }
 ```
 
@@ -367,62 +348,6 @@ Este microservicio utiliza un mecanismo de autenticación basado en **API Key** 
 1. Todas las rutas están protegidas con el decorador `@requiere_token`.
 2. El cliente debe enviar el header `X-Internal-API-Key` en cada petición.
 3. El valor del header se compara con la variable de entorno `INTERNAL_API_KEY`.
-
-### Ejemplo de Petición
-
-```bash
-curl -X GET http://localhost:5000/books \
-  -H "X-Internal-API-Key: 123"
-```
-
-### Respuesta de Error de Autenticación
-
-```json
-{
-  "error": "Unauthorized"
-}
-```
-
-**Código HTTP**: `401 Unauthorized`
-
-## ✨ Características
-
-### Implementadas
-
-- ✅ **CRUD Completo**: Operaciones Create, Read, Update, Delete para libros
-- ✅ **Autenticación por API Key**: Protección de endpoints con header personalizado
-- ✅ **CORS Habilitado**: Permite peticiones desde diferentes orígenes
-- ✅ **ORM con SQLAlchemy**: Abstracción de base de datos y consultas SQL
-- ✅ **Migraciones Automáticas**: Gestión de esquema con Flask-Migrate/Alembic
-- ✅ **Serialización JSON**: Método `to_dict()` para respuestas consistentes
-- ✅ **Validación de Datos**: Validación de campos requeridos en POST
-- ✅ **Manejo de Errores**: Respuestas HTTP apropiadas (404, 400, 401, 200, 201)
-- ✅ **Configuración por Variables de Entorno**: Uso de `.env` para configuración flexible
-- ✅ **Logging de Debug**: Prints de headers y variables de entorno para depuración
-
-### Mejoras Potenciales
-
-- 🔄 **Paginación**: Implementar paginación en `GET /books` para grandes volúmenes de datos
-- 🔄 **Filtrado y Búsqueda**: Agregar query parameters para filtrar por autor, categoría, ISBN
-- 🔄 **Validación Avanzada**: Usar Marshmallow o Pydantic para validación de schemas
-- 🔄 **Rate Limiting**: Limitar número de peticiones por IP/API Key
-- 🔄 **Logging Estructurado**: Implementar logging con niveles (INFO, ERROR, WARNING)
-- 🔄 **Testing**: Agregar pruebas unitarias y de integración con pytest
-- 🔄 **Documentación OpenAPI/Swagger**: Generar documentación interactiva de la API
-- 🔄 **Health Check Endpoint**: Endpoint `/health` para monitoreo del servicio
-- 🔄 **Docker**: Containerizar el servicio con Dockerfile y docker-compose
-
----
-
-## 📝 Notas Adicionales
-
-### Depuración
-
-El archivo `routes.py` incluye prints de debug que muestran:
-- El header `X-Internal-API-Key` recibido
-- El valor de la variable de entorno `INTERNAL_API_KEY`
-
-Estos prints deben eliminarse o reemplazarse con logging apropiado en producción.
 
 ### Seguridad
 
