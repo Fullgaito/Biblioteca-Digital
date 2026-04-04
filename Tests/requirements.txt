@@ -1,0 +1,4 @@
+# requirements.txt — Dependencias para las pruebas de rendimiento
+# Instalar con: pip install -r requirements.txt
+ 
+locust>=2.24.0
