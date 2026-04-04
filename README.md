@@ -1,4 +1,4 @@
-# Sistema de Biblioteca - Arquitectura de Microservicios
+# 📖 Sistema de Biblioteca - Arquitectura de Microservicios
 
 ## Descripción General
 
@@ -405,6 +405,30 @@ curl http://localhost:8080/api/reports/dashboard \
 | Reports | `5001` | `http://localhost:5001` |
  
 ---
+
+## 🕵️‍♂️ Pruebas de rendimiento
+
+Se realizó distintas pruebas sobre el sistema en general usando la libreria de Locust proporcionada por Python, realizando pruebas de carga,estrés y de capacidad.
+
+> **Nota**: Documentación completa de las pruebas en [Tests/README.md/](Tests/README.md)
+
+### Pasos para desplegar las pruebas
+
+```bash
+cd ../api-gateway
+php artisan serve
+```
+
+### 2. Ejecuta Locust con GUI
+```bash
+locust -f locust_laravel.py 
+```
+
+### 3. Abre el navegador
+Ve a `http://127.0.0.1:8089` y configura:
+- **Number of users**: Cantidad de usuarios simultáneos
+- **Spawn rate**: Usuarios creados por segundo
+- Luego presiona "Start swarming"
  
 ## 🔑 Autenticación
  
