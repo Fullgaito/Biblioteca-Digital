@@ -2,24 +2,6 @@
 
 Microservicio REST desarrollado en **Node.js/Express** con **MongoDB/Mongoose** para gestionar préstamos de libros en una biblioteca digital. Parte de una arquitectura de microservicios que se comunica con servicios de libros (Flask) y multas (Django).
 
----
-
-## 📋 Tabla de Contenidos
-
-- [Stack Tecnológico](#-stack-tecnológico)
-- [Arquitectura](#-arquitectura)
-- [Estructura del Proyecto](#-estructura-del-proyecto)
-- [Modelo de Datos](#-modelo-de-datos)
-- [Instalación](#-instalación)
-- [Configuración](#-configuración)
-- [Endpoints REST](#-endpoints-rest)
-- [Flujo de Operaciones](#-flujo-de-operaciones)
-- [Autenticación](#-autenticación)
-- [Características Implementadas](#-características-implementadas)
-- [Notas Técnicas](#-notas-técnicas)
-
----
-
 ## 🛠 Stack Tecnológico
 
 | Tecnología | Versión | Propósito |
@@ -89,14 +71,6 @@ loans/
 }
 ```
 
-**Colección MongoDB:** `loans` (plural automático de Mongoose)
-
-**Índices recomendados:**
-```javascript
-db.loans.createIndex({ user_id: 1, book_id: 1, status: 1 })
-db.loans.createIndex({ status: 1 })
-```
-
 ---
 
 ## 🚀 Instalación
@@ -144,7 +118,7 @@ node server.js
 Salida esperada:
 ```
 Conectado a MongoDB
-Servidor corriendo en puerto 3000
+Servidor corriendo en puerto 3002
 ```
 
 ---
@@ -158,14 +132,14 @@ Servidor corriendo en puerto 3000
 MONGO_URI=mongodb://127.0.0.1:27017/loans_db
 
 # Puerto del microservicio
-PORT=3000
+PORT=3002
 
 # Clave de autenticación interna
 INTERNAL_API_KEY=123
 
 # URLs de otros microservicios
 FLASK_URL=http://localhost:5000        # Microservicio de libros
-FINES_URL=http://localhost:8080        # Microservicio de multas
+FINES_URL=http://localhost:8001        # Microservicio de multas
 ```
 
 **⚠️ Importante:** El archivo `.env` NO debe subirse a Git. Añadir a `.gitignore`:
@@ -312,7 +286,7 @@ X-Internal-API-Key: 123
 
 **Ejemplo:**
 ```
-GET /loans/usuario/101
+GET /loans/usuario/507f1f77bcf86cd799439011
 ```
 
 **Respuesta (200):**
@@ -439,23 +413,6 @@ curl -X POST http://localhost:3000/loans \
   -d '{"user_id": 101, "book_id": 5}'
 ```
 
----
-
-## ✅ Características Implementadas
-
-- ✅ **CRUD parcial** (Create, Read - no Update/Delete individual)
-- ✅ **Validación** de campos requeridos y estado de préstamos
-- ✅ **Integración con Flask** para gestión de stock (GET, PUT /decrement, /increment)
-- ✅ **Integración con Django** para creación de multas
-- ✅ **Rollback transaccional** si falla la creación del préstamo
-- ✅ **Autenticación interna** mediante API Key
-- ✅ **ODM Mongoose** con esquema tipado y validaciones
-- ✅ **Consultas filtradas** (por usuario, por estado)
-- ✅ **Prevención de duplicados** (usuario no puede tener 2 préstamos activos del mismo libro)
-
----
-
-
 ## 📝 Notas Técnicas
 
 ### Diferencias con otros microservicios
@@ -486,19 +443,6 @@ if (!response.ok) {
 const book = await response.json();
 ```
 
-### MongoDB vs MySQL
-
-**Por qué MongoDB para préstamos:**
-- Esquema flexible (puede añadir campos como `notes`, `renewals`)
-- Excelente para logs/historial
-- Escalabilidad horizontal natural
-- No requiere migraciones complejas
-
-**Trade-offs:**
-- No hay relaciones fuertes (book_id es solo un número)
-- Consistencia eventual en replicación
-- No hay transacciones ACID multi-documento (≤ v4.0)
-
 ### Gestión de errores en rollback
 
 ```javascript
@@ -511,44 +455,12 @@ try {
     await incrementStock(); // Puede fallar silenciosamente
     return res.status(500).json({ error: error.message });
 }
-```
 
-**Solución ideal:** Patrón SAGA o event sourcing con compensación.
-
----
-
-## 🐛 Debugging
-
-### Ver logs de MongoDB
-
-```bash
-# Conexiones activas
-mongosh
-use loans_db
-db.currentOp()
-
-# Ver préstamos
-db.loans.find().pretty()
-
-# Contar préstamos activos
-db.loans.countDocuments({ status: 'active' })
 ```
 
 ### Probar endpoints con curl
 
-```bash
-# Crear préstamo
-curl -X POST http://localhost:3000/loans \
-  -H "X-Internal-API-Key: 123" \
-  -H "Content-Type: application/json" \
-  -d '{"user_id": 101, "book_id": 5}'
-
-# Listar todos
-curl -H "X-Internal-API-Key: 123" http://localhost:3000/loans
-
-# Devolver libro
-curl -X PUT http://localhost:3000/loans/LOAN_ID/return \
-  -H "X-Internal-API-Key: 123"
+```
 ```
 
 ### Errores comunes
