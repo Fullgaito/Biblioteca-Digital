@@ -4,23 +4,6 @@ Microservicio REST desarrollado en **Django 5.2** con **Django REST Framework** 
 
 ---
 
-## 📋 Tabla de Contenidos
-
-- [Stack Tecnológico](#-stack-tecnológico)
-- [Arquitectura](#-arquitectura)
-- [Estructura del Proyecto](#-estructura-del-proyecto)
-- [Modelo de Datos](#-modelo-de-datos)
-- [Instalación](#-instalación)
-- [Configuración](#-configuración)
-- [Migraciones](#-migraciones)
-- [Endpoints REST](#-endpoints-rest)
-- [Lógica de Negocio](#-lógica-de-negocio)
-- [Autenticación](#-autenticación)
-- [Características Implementadas](#-características-implementadas)
-- [Mejoras Potenciales](#-mejoras-potenciales)
-- [Notas Técnicas](#-notas-técnicas)
-
----
 
 ## 🛠 Stack Tecnológico
 
@@ -96,38 +79,6 @@ fines/
 │
 ├── venv/                            # Entorno virtual Python (no subir a Git)
 └── requirements.txt                 # Dependencias del proyecto
-```
-
----
-
-## 💾 Modelo de Datos
-
-### Modelo `Fine` (Django ORM)
-
-```python
-class Fine(models.Model):
-    id = BigAutoField()              # Auto-incremental (PK, automático)
-    user_id = IntegerField()         # ID del usuario con multa
-    loan_id = CharField(max_length=50)  # ID del préstamo (MongoDB ObjectId)
-    amount = DecimalField(max_digits=10, decimal_places=2)  # Monto de la multa
-    days_late = IntegerField()       # Días de retraso
-    status = CharField(max_length=20, default='pending')  # 'pending' | 'paid'
-    paid_at = DateTimeField(null=True, blank=True)  # Timestamp de pago
-```
-
-**Tabla PostgreSQL:** `fines_fine` (Django agrega prefijo de app)
-
-**Esquema SQL generado:**
-```sql
-CREATE TABLE fines_fine (
-    id BIGSERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    loan_id VARCHAR(50) NOT NULL,
-    amount NUMERIC(10, 2) NOT NULL,
-    days_late INTEGER NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending',
-    paid_at TIMESTAMP WITH TIME ZONE NULL
-);
 ```
 
 ---
@@ -221,8 +172,6 @@ Starting development server at http://127.0.0.1:8001/
 Quit the server with CONTROL-C.
 ```
 
-**⚠️ Importante:** El puerto **8001** debe coincidir con `FINES_URL` en el microservicio de préstamos.
-
 ---
 
 ## ⚙️ Configuración
@@ -273,21 +222,6 @@ MIDDLEWARE = [
 
 ---
 
-## 🔄 Migraciones
-
-### Historial de migraciones
-
-**Migración 0001_initial (2026-04-01):**
-```python
-# Crea tabla fines_fine con campos:
-# - id, user_id, loan_id, amount, days_late, status, created_at, paid_at
-```
-
-**Migración 0002_remove_fine_created_at (2026-04-02):**
-```python
-# Elimina campo created_at de la tabla
-```
-
 ### Comandos útiles
 
 ```bash
@@ -311,9 +245,8 @@ python manage.py sqlmigrate fines 0001
 
 ## 🔌 Endpoints REST
 
-**Base URL:** `http://localhost:8080`
+**Base URL:** `http://localhost:8001`
 
-**⚠️ Nota:** Todos los endpoints deberían requerir `X-Internal-API-Key` pero el middleware no está implementado.
 
 ---
 
@@ -539,58 +472,6 @@ MIDDLEWARE = [
 ]
 ```
 
-```
-
-```
-## ✅ Características Implementadas
-
-- ✅ **CRUD parcial** (Create, Read - no Update/Delete manual)
-- ✅ **Django ORM** con modelo `Fine` tipado
-- ✅ **Django REST Framework** para serialización
-- ✅ **PostgreSQL** como base de datos relacional
-- ✅ **Migraciones** gestionadas con Django migrations
-- ✅ **Cálculo automático** de monto de multa
-- ✅ **Filtrado** por usuario (`/fines/user/:user_id`)
-- ✅ **Cambio de estado** (pending → paid)
-- ✅ **Timestamp de pago** automático
-- ✅ **Validación de estado** (no pagar dos veces)
-- ✅ **Variables de entorno** con python-dotenv
-
----
-
-## 🔧 Mejoras Potenciales
-
-### Funcionalidad
- 
-1. **Tarifa configurable**
-   ```python
-   # En settings.py
-   FINE_RATE_PER_DAY = int(os.getenv('FINE_RATE_PER_DAY', 580))
-   
-   # En views.py
-   from django.conf import settings
-   amount = days_late * settings.FINE_RATE_PER_DAY
-   ```
-
-2. **Más estados de multa**
-   ```python
-   STATUS_CHOICES = [
-       ('pending', 'Pending'),
-       ('paid', 'Paid'),
-       ('cancelled', 'Cancelled'),
-       ('forgiven', 'Forgiven'),
-   ]
-   status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-   ```
-
-3. **Campo de método de pago**
-   ```python
-   payment_method = models.CharField(max_length=50, null=True, blank=True)
-   # Valores: 'cash', 'card', 'transfer', etc.
-   ```
-   ```
----
-
 ### Campos calculados
 
 ```python
@@ -600,8 +481,6 @@ amount = days_late * 580
 
 El monto NO se almacena en el request, se calcula server-side. Esto evita que el cliente manipule el precio.
 
-```python
-```
 
 ### Errores comunes
 
