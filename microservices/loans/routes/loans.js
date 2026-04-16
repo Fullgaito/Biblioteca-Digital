@@ -83,11 +83,13 @@ router.post('/', authInternal, async (req, res) => { // Registrar un nuevo prés
             headers: {
                 'Content-Type': 'application/json',
                 'X-Internal-API-Key': process.env.INTERNAL_API_KEY
-            }
+            },
+            body: JSON.stringify({ quantity: 1 })
         });
 
         if (!decrementResponse.ok) {
-            return res.status(500).json({ error: 'Error updating stock' });
+            const errorData = await decrementResponse.json();
+            return res.status(decrementResponse.status).json(errorData);
         }
         stockDecremented = true;
         
