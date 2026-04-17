@@ -5,7 +5,8 @@ def get_loans():
     headers={
         "X-Internal-API-Key": os.getenv("INTERNAL_API_KEY")
     }
-    response=requests.get(f"{os.getenv('LOANS_URL')}/loans", headers=headers)
+    loans_base_url = os.getenv('LOANS_SERVICE_URL', os.getenv('LOANS_URL'))
+    response=requests.get(f"{loans_base_url}/loans", headers=headers)
     if response.status_code != 200:
         return []
 

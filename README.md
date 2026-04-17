@@ -274,9 +274,9 @@ Crear el archivo `.env`:
  
 ```env
 BOOKS_SERVICE_URL=http://localhost:5000
-LOANS_URL=http://localhost:3002
-FINES_URL=http://localhost:8001
-SALES_URL=http://localhost:3001
+LOANS_SERVICE_URL=http://localhost:3002
+FINES_SERVICE_URL=http://localhost:8001
+SALES_SERVICE_URL=http://localhost:3001
 INTERNAL_API_KEY=mi_clave_super_secreta_2024
 ```
  
@@ -290,7 +290,7 @@ python app.py
  
 ---
  
-### Paso 8 — API Gateway (Laravel · Puerto 8080)
+### Paso 8 — API Gateway (Laravel · Puerto 8000)
  
 ```bash
 cd api-gateway
@@ -364,7 +364,7 @@ Una vez todos los servicios estén corriendo, verifica con las siguientes petici
 #### 1. Registrar un usuario
  
 ```bash
-curl -X POST http://localhost:8080/api/register \
+curl -X POST http://localhost:8000/api/register \
   -H "Content-Type: application/json" \
   -d '{"name":"Test User","email":"test@test.com","password":"12345678","password_confirmation":"12345678","cuestion":"color favorito","answer":"azul"}'
 ```
@@ -372,7 +372,7 @@ curl -X POST http://localhost:8080/api/register \
 #### 2. Obtener token
  
 ```bash
-curl -X POST http://localhost:8080/api/login \
+curl -X POST http://localhost:8000/api/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"12345678"}'
 ```
@@ -380,14 +380,14 @@ curl -X POST http://localhost:8080/api/login \
 #### 3. Verificar catálogo de libros (requiere token)
  
 ```bash
-curl http://localhost:8080/api/books \
+curl http://localhost:8000/api/books \
   -H "Authorization: Bearer <TOKEN>"
 ```
  
 #### 4. Verificar dashboard de reportes
  
 ```bash
-curl http://localhost:8080/api/reports/dashboard \
+curl http://localhost:8000/api/reports/dashboard \
   -H "Authorization: Bearer <TOKEN>"
 ```
  

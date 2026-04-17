@@ -47,6 +47,7 @@ BOOKS_SERVICE_URL=http://localhost:5000
 LOANS_SERVICE_URL=http://localhost:3002
 FINES_SERVICE_URL=http://localhost:8001
 SALES_SERVICE_URL=http://localhost:3001
+INTERNAL_API_KEY=mi_clave_super_secreta_2024
 ```
 
 | Variable | Servicio destino | Puerto por defecto |
@@ -55,6 +56,8 @@ SALES_SERVICE_URL=http://localhost:3001
 | `LOANS_SERVICE_URL` | Loans (Node.js) | `3002` |
 | `FINES_SERVICE_URL` | Fines (Django) | `8001` |
 | `SALES_SERVICE_URL` | Sales (Node.js) | `3001` |
+
+> Compatibilidad: el código también acepta `BOOKS_URL`, `LOANS_URL`, `FINES_URL`, `SALES_URL` como fallback.
 
 ---
 

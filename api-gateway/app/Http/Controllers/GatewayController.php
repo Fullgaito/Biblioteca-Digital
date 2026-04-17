@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Carbon;
 
 class GatewayController extends Controller
 {
@@ -51,6 +52,7 @@ class GatewayController extends Controller
                 'category' => $request->category,
                 'available'   => $request->available,
                 'quantity'    => $request->quantity,
+                'unit_price'  => $request->unit_price,
             ]);
 
         return response()->json($response->json(), $response->status());
@@ -329,20 +331,32 @@ class GatewayController extends Controller
             return response()->json(['error' => 'Error al crear el préstamo'], 502);
         }
 
-        // 3. Marcar libro como no disponible
-        Http::withHeaders($headers)
-            ->put(config('services.microservices.books') . "/books/{$request->book_id}", [
-                'available' => false,
-            ]);
+        // 3. Sincronizar disponibilidad del libro (best effort)
+        // El stock real se gestiona en Books (y Loans ya decrementa quantity).
+        $bookAfter = Http::withHeaders($headers)
+            ->get(config('services.microservices.books') . "/books/{$request->book_id}");
 
-        // 4. Notificar al usuario
-        Http::withHeaders($headers)
-            ->post(config('services.microservices.notifications') . '/notifications', [
-                'user_id' => $userId,
-                'type'    => 'loan_created',
-                'message' => "Préstamo creado para el libro {$request->book_id}",
-                'data'    => ['book_id' => $request->book_id, 'loan_id' => $loan->json('id')],
-            ]);
+        if ($bookAfter->successful()) {
+            $qty = (int) ($bookAfter->json('quantity') ?? 0);
+            $available = $qty > 0;
+
+            Http::withHeaders($headers)
+                ->put(config('services.microservices.books') . "/books/{$request->book_id}", [
+                    'available' => $available,
+                ]);
+        }
+
+        // 4. Notificaciones (si existe microservicio)
+        $notificationsBase = config('services.microservices.notifications');
+        if ($notificationsBase) {
+            Http::withHeaders($headers)
+                ->post($notificationsBase . '/notifications', [
+                    'user_id' => $userId,
+                    'type'    => 'loan_created',
+                    'message' => "Préstamo creado para el libro {$request->book_id}",
+                    'data'    => ['book_id' => $request->book_id, 'loan_id' => $loan->json('id')],
+                ]);
+        }
 
         return response()->json($loan->json(), $loan->status());
     }
@@ -361,41 +375,64 @@ class GatewayController extends Controller
 
         $loanData = $loan->json();
 
-        // 2. Marcar libro como disponible
-        Http::withHeaders($headers)
-            ->put(config('services.microservices.books') . "/books/{$loanData['book_id']}", [
-                'available' => true,
-            ]);
+        // 2. Sincronizar disponibilidad del libro (best effort)
+        if (!empty($loanData['book_id'])) {
+            $bookAfter = Http::withHeaders($headers)
+                ->get(config('services.microservices.books') . "/books/{$loanData['book_id']}");
 
-        // 3. Notificar devolución
-        Http::withHeaders($headers)
-            ->post(config('services.microservices.notifications') . '/notifications', [
-                'user_id' => $loanData['user_id'],
-                'type'    => 'loan_returned',
-                'message' => "Devolución registrada para el préstamo {$loanId}",
-                'data'    => ['loan_id' => $loanId],
-            ]);
+            if ($bookAfter->successful()) {
+                $qty = (int) ($bookAfter->json('quantity') ?? 0);
+                $available = $qty > 0;
+
+                Http::withHeaders($headers)
+                    ->put(config('services.microservices.books') . "/books/{$loanData['book_id']}", [
+                        'available' => $available,
+                    ]);
+            }
+        }
+
+        // 3. Notificar devolución (si existe microservicio)
+        $notificationsBase = config('services.microservices.notifications');
+        if ($notificationsBase) {
+            Http::withHeaders($headers)
+                ->post($notificationsBase . '/notifications', [
+                    'user_id' => $loanData['user_id'] ?? null,
+                    'type'    => 'loan_returned',
+                    'message' => "Devolución registrada para el préstamo {$loanId}",
+                    'data'    => ['loan_id' => $loanId],
+                ]);
+        }
 
         // 4. Si la devolución es tardía, generar multa y notificar
-        $today   = now()->toDateString();
-        $dueDate = $loanData['due_date'] ?? null;
+        $today = Carbon::now()->startOfDay();
+        $dueDateRaw = $loanData['due_date'] ?? null;
+        $loanDateRaw = $loanData['loan_date'] ?? null;
 
-        if ($dueDate && $today > $dueDate) {
+        $dueDate = null;
+        if ($dueDateRaw) {
+            $dueDate = Carbon::parse($dueDateRaw)->startOfDay();
+        } elseif ($loanDateRaw) {
+            $dueDate = Carbon::parse($loanDateRaw)->addDays(7)->startOfDay();
+        }
+
+        if ($dueDate && $today->greaterThan($dueDate)) {
             Http::withHeaders($headers)
                 ->post(config('services.microservices.fines') . '/fines', [
-                    'user_id'     => $loanData['user_id'],
+                    'user_id'     => $loanData['user_id'] ?? null,
                     'loan_id'     => $loanId,
-                    'due_date'    => $dueDate,
-                    'return_date' => $today,
+                    'due_date'    => $dueDate->toDateString(),
+                    'return_date' => $today->toDateString(),
                 ]);
 
-            Http::withHeaders($headers)
-                ->post(config('services.microservices.notifications') . '/notifications', [
-                    'user_id' => $loanData['user_id'],
-                    'type'    => 'fine_generated',
-                    'message' => "Se generó una multa por devolución tardía del préstamo {$loanId}",
-                    'data'    => ['loan_id' => $loanId, 'due_date' => $dueDate],
-                ]);
+            if ($notificationsBase) {
+                Http::withHeaders($headers)
+                    ->post($notificationsBase . '/notifications', [
+                        'user_id' => $loanData['user_id'] ?? null,
+                        'type'    => 'fine_generated',
+                        'message' => "Se generó una multa por devolución tardía del préstamo {$loanId}",
+                        'data'    => ['loan_id' => $loanId, 'due_date' => $dueDate->toDateString()],
+                    ]);
+            }
         }
 
         return response()->json($loanData, $loan->status());

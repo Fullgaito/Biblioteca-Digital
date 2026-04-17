@@ -55,6 +55,11 @@ class UserController extends Controller
 
     public function recuperarPassword(Request $request)
     {
+        $request->validate([
+            'email' => 'required|email',
+            'new_password' => 'required|string|min:8',
+        ]);
+
         $user = User::where('email', $request->email)->first(); ##busca el usuario por email en la base de datos
 
         if(!$user){ ##si no encuentra el usuario
@@ -62,8 +67,15 @@ class UserController extends Controller
         }
 
         //Logica para pregunta de seguridad y respuesta
-        $preguntaValida = $request->pregunta === $user->pregunta;
-        $respuestaValida = $request->respuesta === $user->respuesta;
+        $question = $request->input('cuestion', $request->input('pregunta'));
+        $answer   = $request->input('answer', $request->input('respuesta'));
+
+        if (!$question || !$answer) {
+            return response()->json(['message' => 'Pregunta o respuesta requerida'], 400);
+        }
+
+        $preguntaValida = $question === $user->cuestion;
+        $respuestaValida = $answer === $user->answer;
 
         if (!$preguntaValida || !$respuestaValida) {
             return response()->json(['message' => 'Pregunta o respuesta incorrecta'], 400);

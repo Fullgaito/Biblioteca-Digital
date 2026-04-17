@@ -1,6 +1,16 @@
 const express = require('express') // Rutas para manejar los préstamos
 const router = express.Router()
-const Loan = require('../models/Loan') // Modelo de préstamo
+const Loan = require('../models/loan') // Modelo de préstamo
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+        clearTimeout(id);
+    }
+}
 
 const authInternal = function (req, res, next) {
     const apiKey = req.headers['x-internal-api-key'];
@@ -41,9 +51,10 @@ router.get('/user/:user_id', authInternal, async (req, res) => { // Obtener pré
 // ── POST /loans ───────────────────────────────────────────────
 router.post('/', authInternal, async (req, res) => { // Registrar un nuevo préstamo
     let stockDecremented = false;
-    let book_id;
+    let bookId;
     try {
         const { user_id, book_id } = req.body
+        bookId = book_id;
 
         if (!user_id || !book_id) {
             return res.status(400).json({ error: 'Missing fields' })
@@ -59,13 +70,12 @@ router.post('/', authInternal, async (req, res) => { // Registrar un nuevo prés
         }
         
         //Llamar a flask
-        const response = await fetch(`${process.env.FLASK_URL}/books/${book_id}`, {
+        const response = await fetchWithTimeout(`${process.env.FLASK_URL}/books/${book_id}`, {
             headers: {
                 'Content-Type': 'application/json',
                 'X-Internal-API-Key': process.env.INTERNAL_API_KEY
-            },
-            timeout: 5000 // 5 segundos de timeout
-        });
+            }
+        }, 5000);
 
         if (!response.ok) {
             return res.status(404).json({ error: 'Book not found' });
@@ -78,17 +88,20 @@ router.post('/', authInternal, async (req, res) => { // Registrar un nuevo prés
         }
 
         // 1. descontar stock
-        const decrementResponse = await fetch(`${process.env.FLASK_URL}/books/${book_id}/decrement`, {
+        const decrementResponse = await fetchWithTimeout(`${process.env.FLASK_URL}/books/${book_id}/decrement`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Internal-API-Key': process.env.INTERNAL_API_KEY
             },
             body: JSON.stringify({ quantity: 1 })
-        });
+        }, 5000);
 
         if (!decrementResponse.ok) {
-            const errorData = await decrementResponse.json();
+            let errorData = { error: 'Error decrementing stock' };
+            try {
+                errorData = await decrementResponse.json();
+            } catch (_) {}
             return res.status(decrementResponse.status).json(errorData);
         }
         stockDecremented = true;
@@ -103,14 +116,18 @@ router.post('/', authInternal, async (req, res) => { // Registrar un nuevo prés
         })
 
     } catch (error) {
-        // rollback (devolver stock)
-        await fetch(`${process.env.FLASK_URL}/books/${book_id}/increment`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Internal-API-Key': process.env.INTERNAL_API_KEY
-            }
-        });
+        // rollback (devolver stock) solo si alcanzamos a descontar
+        if (stockDecremented && bookId) {
+            try {
+                await fetchWithTimeout(`${process.env.FLASK_URL}/books/${bookId}/increment`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Internal-API-Key': process.env.INTERNAL_API_KEY
+                    }
+                }, 5000);
+            } catch (_) {}
+        }
         return res.status(500).json({ error: error.message })
     }
 })
@@ -138,13 +155,13 @@ router.put('/:id/return', authInternal, async (req, res) => { // Devolver un lib
             return res.status(400).json({ error: 'Loan already returned' });
         }
         // devolver stock
-        const incrementResponse = await fetch(`${process.env.FLASK_URL}/books/${loan.book_id}/increment`, {
+        const incrementResponse = await fetchWithTimeout(`${process.env.FLASK_URL}/books/${loan.book_id}/increment`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Internal-API-Key': process.env.INTERNAL_API_KEY
             }
-        });
+        }, 5000);
 
         if (!incrementResponse.ok) {
             return res.status(500).json({ error: 'Error updating stock' });
@@ -168,7 +185,7 @@ router.put('/:id/return', authInternal, async (req, res) => { // Devolver un lib
 
         if(daysLate>0){
             try {
-                await fetch(`${process.env.FINES_URL}/fines`, {
+                await fetchWithTimeout(`${process.env.FINES_URL}/fines`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -179,7 +196,7 @@ router.put('/:id/return', authInternal, async (req, res) => { // Devolver un lib
                         loan_id: loan._id,
                         days_late: daysLate
                     })
-                });
+                }, 5000);
             } catch (error) {
                 console.error('Error creating fine:', error);
             }
