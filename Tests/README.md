@@ -36,9 +36,9 @@ Ve a `http://127.0.0.1:8089` y configura:
 
 ### Prueba Reciente
 
-- **Número de usuarios**: 5
+- **Número de usuarios**: 4
 - **Tasa de generación (spawn rate)**: 0.1 usuarios por segundo
-- **Duración**: 5 minutos
+- **Duración**: 6 minutos
 
 ### Resultados
 
@@ -51,7 +51,7 @@ Tras realizar múltiples iteraciones de pruebas de carga, se han identificado lo
 En la prueba final con una configuración de 5 usuarios concurrentes y un spawn rate de 0.1 u/s, se obtuvieron las siguientes conclusiones.
 
 - El sistema mantiene una estabilidad óptima (tiempos de respuesta de ~3s) con hasta 3 usuarios simultáneos.
-- Al alcanzar los 5 usuarios, el sistema presenta un comportamiento de "asfixia" o bloqueo secuencial. Los tiempos de respuesta (P95) escalan drásticamente hasta los **30 segundos**.
+- Al alcanzar los 4 usuarios, el sistema presenta un comportamiento de "asfixia" o bloqueo secuencial. Los tiempos de respuesta (P95) escalan drásticamente hasta los **20 segundos**.
 - Las gráficas de RPS muestran caídas a cero durante los picos de latencia, lo que indica que el servidor procesa las peticiones de forma síncrona y bloqueante, probablemente debido a consultas donde se relacionan entre sí los microservicios y la información que fluye entre ellos.
 
 ### Conclusiones Técnicas
@@ -76,19 +76,19 @@ En la prueba final con una configuración de 5 usuarios concurrentes y un spawn 
 Se realizó una prueba de estrés con 50 usuarios concurrentes y un spawn rate de 1 u/s. Los resultados fueron catastróficos para la disponibilidad del servicio
 
 - El sistema colapsa de forma irreversible al superar los **15-20 usuarios** concurrentes.
-- Los tiempos de respuesta alcanzaron un pico de **180 segundos**.
+- Los tiempos de respuesta alcanzaron un pico de **138 segundos**.
 
 ### Conclusiones Técnicas
 
 - Viendo esta situación de que el sistema no es capaz de soportar al menos 15 usuarios se hace necesario implementar disntintas medidas sobre el código del aplicativo buscando que las peticiones y el flujo siga buenas prácticas y sea óptimo.
-- Como el servidor tarda 3 minutos en responder, los 50 usuarios están esperando algo que en el mundo de la informática y la navegación web es inaceptable.
+- Como el servidor tarda aproximadamente 3 minutos en responder, los 50 usuarios están esperando algo que en el mundo de la informática y la navegación web es inaceptable.
 
 
 ## Pruebas de capacidad
 
 ### Prueba Reciente
 
-- **Número de usuarios**: 50
+- **Número de usuarios**: 6
 - **Tasa de generación (spawn rate)**: 1 usuarios por segundo
 
 ### Resultados
