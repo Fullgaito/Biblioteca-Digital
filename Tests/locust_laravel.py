@@ -16,8 +16,10 @@ class BibliotecaUser(HttpUser):
     # Lista e instancia — cada usuario tiene la suya propia
     def on_start(self):
         self.token = choice(self.TOKENS)
-        self.created_book_ids = []          # ← instancia, no clase
-        self._lock = threading.Lock()       # protege la lista de este usuario
+        self.created_book_ids = []          
+        self.created_loan_ids = []
+        self.created_fine_ids = []
+        self._lock = threading.Lock()       
 
     def get_headers(self):
         return {
@@ -62,16 +64,52 @@ class BibliotecaUser(HttpUser):
                 pass
 
     @task(1)
+    def create_sale(self):
+        with self._lock:
+            if not self.created_book_ids:
+                return
+            book_id = choice(self.created_book_ids)
+        
+        data = {
+            "book_id": book_id,
+            "quantity": randint(1, 3),
+            "customer_name": "Cliente Locust"
+        }
+        self.client.post("/api/sales", json=data, headers=self.get_headers())
+
+    @task(1)
     def update_book(self):
         with self._lock:
             if not self.created_book_ids:
                 return
             book_id = choice(self.created_book_ids)
+        
         data = {
             "title": f"Libro Actualizado {randint(1, 1000)}",
-            "author": "Autor Actualizado"
+            "author": "Autor Actualizado",
+            "isbn": f"{randint(100000, 999999)}",
+            "description": "Libro actualizado por prueba de carga",
+            "category": "No Ficción",
+            "available": False,
+            "unit_price": randint(15000, 80000)
         }
         self.client.put(f"/api/books/{book_id}", json=data, headers=self.get_headers())
+
+    @task(1)
+    def get_dashboard_reports(self):
+        self.client.get("/api/reports/dashboard", headers=self.get_headers())
+    
+    @task(1)
+    def get_total_sales(self):
+        self.client.get("/api/reports/total-sales", headers=self.get_headers())
+
+    @task(1)
+    def get_most_sold_books_report(self):
+        self.client.get("/api/reports/most-sold-books", headers=self.get_headers())
+
+    @task(1)
+    def get_profile(self):
+        self.client.get("/api/me", headers=self.get_headers())
 
     @task(1)
     def delete_book(self):
@@ -79,22 +117,9 @@ class BibliotecaUser(HttpUser):
             if not self.created_book_ids:
                 return
             book_id = choice(self.created_book_ids)
-            self.created_book_ids.remove(book_id)   # remueve antes de la petición
-        self.client.delete(f"/api/books/{book_id}", headers=self.get_headers())
-
-    @task(1)
-    def get_loans(self):
-        with self.client.get("/api/loans", headers=self.get_headers(),catch_response=True)as response:
-            if response.status_code==500:
-                response.failure(f"ms-loans: {response.text[:200]}")
-    @task(1)
-    def get_fines(self):
-        self.client.get("/api/fines", headers=self.get_headers())
-
-    @task(1)
-    def get_reports(self):
-        self.client.get("/api/reports/dashboard", headers=self.get_headers())
-
-    @task(1)
-    def get_profile(self):
-        self.client.get("/api/me", headers=self.get_headers())
+        
+        response = self.client.delete(f"/api/books/{book_id}", headers=self.get_headers())
+        if response.status_code == 204:
+            with self._lock:
+                if book_id in self.created_book_ids:
+                    self.created_book_ids.remove(book_id)
