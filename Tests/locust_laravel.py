@@ -16,28 +16,14 @@ class BibliotecaUser(HttpUser):
     # Lista e instancia — cada usuario tiene la suya propia
     def on_start(self):
         self.token = choice(self.TOKENS)
-        self.created_book_ids = []          
-        self.created_loan_ids = []
-        self.created_fine_ids = []
-        self._lock = threading.Lock()       
+        self.created_book_ids = []          # ← instancia, no clase
+        self._lock = threading.Lock()       # protege la lista de este usuario
 
     def get_headers(self):
         return {
             "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json"
         }
-
-    @task(3)
-    def get_books(self):
-        self.client.get("/api/books", headers=self.get_headers())
-
-    @task(2)
-    def get_book_by_id(self):
-        with self._lock:
-            if not self.created_book_ids:
-                return
-            book_id = choice(self.created_book_ids)
-        self.client.get(f"/api/books/{book_id}", headers=self.get_headers())
 
     @task(1)
     def create_book(self):
@@ -48,7 +34,8 @@ class BibliotecaUser(HttpUser):
             "description": "Libro generado por prueba de carga",
             "category": "Ficción",
             "available": True,
-            "unit_price": randint(10000, 70000)
+            "unit_price": randint(10000, 70000),
+            "quantity": randint(10, 50)
         }
         response = self.client.post("/api/books", json=data, headers=self.get_headers())
         if response.status_code in [200, 201]:
@@ -64,6 +51,26 @@ class BibliotecaUser(HttpUser):
                 pass
 
     @task(1)
+    def get_books(self):
+        self.client.get("/api/books", headers=self.get_headers())
+
+    @task(1)
+    def get_book_by_id(self):
+        with self._lock:
+            if not self.created_book_ids:
+                return
+            book_id = choice(self.created_book_ids)
+        self.client.get(f"/api/books/{book_id}", headers=self.get_headers())
+
+    @task(1)
+    def get_profile(self):
+        self.client.get("/api/me", headers=self.get_headers())
+    
+    @task(1)
+    def get_dashboard_reports(self):
+        self.client.get("/api/reports/dashboard", headers=self.get_headers())
+    
+    @task(1)
     def create_sale(self):
         with self._lock:
             if not self.created_book_ids:
@@ -71,55 +78,16 @@ class BibliotecaUser(HttpUser):
             book_id = choice(self.created_book_ids)
         
         data = {
+            "user_id": choice([1, 2, 3, 4]),  # ID de usuario válido
             "book_id": book_id,
-            "quantity": randint(1, 3),
-            "customer_name": "Cliente Locust"
+            "quantity": randint(1, 3)
         }
         self.client.post("/api/sales", json=data, headers=self.get_headers())
-
-    @task(1)
-    def update_book(self):
-        with self._lock:
-            if not self.created_book_ids:
-                return
-            book_id = choice(self.created_book_ids)
-        
-        data = {
-            "title": f"Libro Actualizado {randint(1, 1000)}",
-            "author": "Autor Actualizado",
-            "isbn": f"{randint(100000, 999999)}",
-            "description": "Libro actualizado por prueba de carga",
-            "category": "No Ficción",
-            "available": False,
-            "unit_price": randint(15000, 80000)
-        }
-        self.client.put(f"/api/books/{book_id}", json=data, headers=self.get_headers())
-
-    @task(1)
-    def get_dashboard_reports(self):
-        self.client.get("/api/reports/dashboard", headers=self.get_headers())
     
     @task(1)
     def get_total_sales(self):
         self.client.get("/api/reports/total-sales", headers=self.get_headers())
-
+    
     @task(1)
     def get_most_sold_books_report(self):
         self.client.get("/api/reports/most-sold-books", headers=self.get_headers())
-
-    @task(1)
-    def get_profile(self):
-        self.client.get("/api/me", headers=self.get_headers())
-
-    @task(1)
-    def delete_book(self):
-        with self._lock:
-            if not self.created_book_ids:
-                return
-            book_id = choice(self.created_book_ids)
-        
-        response = self.client.delete(f"/api/books/{book_id}", headers=self.get_headers())
-        if response.status_code == 204:
-            with self._lock:
-                if book_id in self.created_book_ids:
-                    self.created_book_ids.remove(book_id)
