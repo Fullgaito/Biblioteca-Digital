@@ -84,10 +84,7 @@ def register_routes(app):
     @app.route('/books/<int:id>/decrement', methods=['PUT'])
     @requiere_token
     def decrement_book(id):
-        book = Book.query.get(id)
-
-        if not book:
-            return jsonify({'error': 'Book not found'}), 404
+        book = Book.query.get_or_404(id)
 
         data = request.get_json()
         quantity_to_decrement = data.get('quantity', 1) if data else 1
@@ -103,11 +100,7 @@ def register_routes(app):
     @app.route('/books/<int:id>/increment', methods=['PUT'])
     @requiere_token
     def increment_book(id):
-        book = Book.query.get(id)
-
-        if not book:
-            return jsonify({'error': 'Book not found'}), 404
-
+        book = Book.query.get_or_404(id)
         book.quantity += 1
         db.session.commit()
 

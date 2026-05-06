@@ -23,13 +23,12 @@ Ve a `http://127.0.0.1:8089` y configura:
 
 ## Endpoints Probados
 
-- Autenticación: `/api/register`, `/api/login`
-- Libros: `/api/books`, `/api/books/{id}`, `/api/books` (POST), `/api/books/{id}` (PUT), `/api/books/{id}` (DELETE)
-- Ventas: `/api/sales`
-- Préstamos: `/api/loans`
-- Multas: `/api/fines`
-- Reportes: `/api/reports/dashboard`
-- Perfil: `/api/me`
+- Libros: `/api/books`(GET), `/api/books/{id}`(GET), `/api/books` (POST)
+- Ventas: `/api/sales`(POST)
+- Préstamos: `/api/loans`(POST)
+- Multas: `/api/fines`(POST)
+- Reportes: `/api/reports/dashboard`(GET), `/api/reports/most-sold-books` (GET), `/api/reports/total-sales` (GET)
+- Perfil: `/api/me` (GET)
 
 
 ## Pruebas de carga

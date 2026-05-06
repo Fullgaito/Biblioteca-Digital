@@ -60,6 +60,18 @@ class GatewayController extends Controller
 
     public function updateBook(Request $request, $id)
     {
+        $request->validate([
+            'id' => 'required|integer',
+        ]);
+
+        // Validar que el book existe ANTES de actualizar
+        $bookCheck = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.books') . "/books/{$id}");
+
+        if (!$bookCheck->successful()) {
+            return response()->json(['error' => 'Book not found'], 404);
+        }
+
         $response = Http::withHeaders($this->headersInternos($request))
             ->put(config('services.microservices.books') . "/books/{$id}", $request->all());
 
@@ -68,6 +80,14 @@ class GatewayController extends Controller
 
     public function deleteBook(Request $request, $id)
     {
+        // Validar que el book existe ANTES de eliminar
+        $bookCheck = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.books') . "/books/{$id}");
+
+        if (!$bookCheck->successful()) {
+            return response()->json(['error' => 'Book not found'], 404);
+        }
+
         $response = Http::withHeaders($this->headersInternos($request))
             ->delete(config('services.microservices.books') . "/books/{$id}");
 
@@ -103,8 +123,16 @@ class GatewayController extends Controller
     public function createLoan(Request $request)
     {
         $request->validate([
-            'book_id' => 'required',
+            'book_id' => 'required|integer',
         ]);
+
+        // Validar que el book existe ANTES de crear el préstamo
+        $bookCheck = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.books') . '/books/' . $request->book_id);
+
+        if (!$bookCheck->successful()) {
+            return response()->json(['error' => 'Book not found'], 404);
+        }
 
         $response = Http::withHeaders($this->headersInternos($request))
             ->post(config('services.microservices.loans') . '/loans', [
@@ -189,6 +217,20 @@ class GatewayController extends Controller
 
     public function createSale(Request $request)
     {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'book_id' => 'required|integer',
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        // Validar que el book existe ANTES de crear la venta
+        $bookCheck = Http::withHeaders($this->headersInternos($request))
+            ->get(config('services.microservices.books') . '/books/' . $request->book_id);
+
+        if (!$bookCheck->successful()) {
+            return response()->json(['error' => 'Book not found'], 404);
+        }
+
         $response = Http::withHeaders($this->headersInternos($request))
             ->post(config('services.microservices.sales') . '/sales', [
                 'user_id' => $request->user_id,
