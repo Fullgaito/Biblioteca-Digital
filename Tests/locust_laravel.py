@@ -1,10 +1,10 @@
-from locust import HttpUser, task, between
+from locust import HttpUser, task, constant,between
 from random import randint, choice
 import threading
 
 class BibliotecaUser(HttpUser):
 
-    wait_time = between(1, 3)
+    wait_time = between(1, 2)  # Espera entre 1 y 3 segundos entre tareas 
 
     TOKENS = [
         "3|3WZ124uJDjkZOW73lFHJcRiGmiED8rs2sn6Cks1Kf26ac008",
@@ -91,3 +91,20 @@ class BibliotecaUser(HttpUser):
     @task(1)
     def get_most_sold_books_report(self):
         self.client.get("/api/reports/most-sold-books", headers=self.get_headers())
+
+    @task(1)
+    def create_loan(self):
+        with self._lock:
+            if not self.created_book_ids:
+                return
+            book_id = choice(self.created_book_ids)
+        
+        data = {
+            "user_id": choice([1, 2, 3, 4]),  # ID de usuario válido
+            "book_id": book_id,
+        }
+        self.client.post("/api/loans", json=data, headers=self.get_headers())
+    
+    @task(1)
+    def get_active_loans(self):
+        self.client.get("/api/loans/activos", headers=self.get_headers())
