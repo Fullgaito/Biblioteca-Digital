@@ -9,9 +9,13 @@
   "name": "sales",
   "version": "1.0.0",
   "main": "firebase.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "jest-fetch-mock": "^3.0.3",
+    "supertest": "^7.2.2"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "node server.js"
   },
   "keywords": [],
