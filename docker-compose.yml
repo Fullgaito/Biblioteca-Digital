@@ -6,11 +6,18 @@ services:
     ports:
       - "8000:8000"
     depends_on:
+      - mysql_db
       - books-service
       - sales-service
       - reports-service
       - fines-service
       - loans-service
+    environment:
+      DB_HOST: mysql_db
+      DB_PORT: 3306
+      DB_DATABASE: biblioteca_gateway
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD}
     restart: always
 
   books-service:
@@ -25,6 +32,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+      DATABASE_URL: mysql+pymysql://${DB_USER}:${DB_PASSWORD}@mysql_db/${DB_NAME}
     restart: always
 
   fines-service:
@@ -89,6 +97,7 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./init-db:/docker-entrypoint-initdb.d
     
 
   postgres_db:

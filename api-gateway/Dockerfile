@@ -25,11 +25,16 @@ RUN composer install
 # Permisos Laravel
 RUN chmod -R 777 storage bootstrap/cache
 
+# Agregar wait-for-it para esperar a MySQL
+RUN curl -o wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh && \
+    chmod +x wait-for-it.sh
+
 # Exponer puerto
 EXPOSE 8000
 
-# Comando de inicio
-CMD sh -c "php artisan key:generate --force && \
+# Comando de inicio - espera a MySQL antes de migrar
+CMD sh -c "./wait-for-it.sh mysql_db:3306 -t 60 -- \
+php artisan key:generate --force && \
 php artisan migrate --force && \
 php artisan config:clear && \
 php artisan cache:clear && \

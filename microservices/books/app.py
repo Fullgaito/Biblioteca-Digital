@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -9,6 +10,11 @@ from models import db
 
 app= Flask(__name__)
 app.config.from_object(Config)
+
+# Log para validar la configuración de base de datos
+print(f"DEBUG: SQLALCHEMY_DATABASE_URI is {app.config.get('SQLALCHEMY_DATABASE_URI')}")
+print(f"DEBUG: DB_HOST is {os.getenv('DB_HOST')}")
+
 db.init_app(app)
 migrate = Migrate(app, db)
 CORS(app)

@@ -17,6 +17,12 @@ return [
 
     'default' => env('DB_CONNECTION', 'mysql'),
 
+    /* Log para validar conexión */
+    'debug_connection' => [
+        'host' => env('DB_HOST'),
+        'database' => env('DB_DATABASE'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Database Connections
