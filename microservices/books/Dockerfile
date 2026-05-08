@@ -28,4 +28,4 @@ RUN curl -o wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-
 EXPOSE 5000
 
 # comando de arranque de la aplicación, utilizando wait-for-it para esperar a que la base de datos esté lista, aplica migraciones y levanta Gunicorn
-CMD ["sh", "-c", "./wait-for-it.sh db:3306 -- flask db upgrade && gunicorn --bind 0.0.0.0:5000 app:app"]
+CMD ["sh", "-c", "./wait-for-it.sh mysql_db:3306 -- flask db upgrade && gunicorn --bind 0.0.0.0:5000 app:app"]

@@ -1,0 +1,118 @@
+
+services:
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - books-service
+      - sales-service
+      - reports-service
+      - fines-service
+      - loans-service
+    restart: always
+
+  books-service:
+    build: ./microservices/books
+    container_name: books-microservice
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mysql_db
+    environment:
+      DB_HOST: mysql_db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    restart: always
+
+  fines-service:
+    build: ./microservices/fines
+    container_name: fines-microservice
+    ports:
+      - "8001:8001"
+    depends_on:
+      - postgres_db
+    environment:
+      DB_HOST: postgres_db
+      DB_USER: ${DB_USER_POSTGRES}
+      DB_PASSWORD: ${DB_PASSWORD_POSTGRES}
+      DB_NAME: ${DB_NAME_POSTGRES}
+    restart: always
+
+  loans-service:
+    build: ./microservices/loans
+    container_name: loans-microservice
+    ports:
+      - "3002:3002"
+    depends_on:
+      - mongo_db
+    environment:
+      MONGO_HOST: mongo_db
+      MONGO_USER: ${MONGO_USER}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_DB: ${MONGO_DB}
+    restart: always
+
+  sales-service:
+    build: ./microservices/sales
+    container_name: sales-microservice
+    ports:
+      - "3001:3001"
+    environment:
+      FIREBASE_DB_URL: ${FIREBASE}
+      GOOGLE_APPLICATION_CREDENTIALS: /app/firebase-key.json
+    volumes:
+      - ./firebase-key.json:/app/firebase-key.json
+    restart: always
+  reports-service:
+    build: ./microservices/reports
+    container_name: reports-microservice
+    ports:
+      - "5001:5001"
+    depends_on:
+      - mongo_db
+    environment:
+      MONGO_HOST: mongo_db
+      MONGO_DB: ${MONGO_DB}
+      MONGO_USER: ${MONGO_USER}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+    restart: always
+
+  mysql_db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    
+
+  postgres_db:
+    image: postgres:13
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER_POSTGRES}
+      POSTGRES_PASSWORD: ${DB_PASSWORD_POSTGRES}
+      POSTGRES_DB: ${DB_NAME_POSTGRES}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mongo_db:
+    image: mongo
+    container_name: mongo_db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mysql_data:
+  postgres_data:
+  mongo_data:
