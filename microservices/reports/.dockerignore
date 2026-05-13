@@ -11,6 +11,5 @@ venv/
 .venv/
 env/
 .env.example
-tests/
 *.log
 .DS_Store

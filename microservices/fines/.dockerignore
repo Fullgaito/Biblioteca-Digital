@@ -11,8 +11,5 @@ venv/
 .venv/
 env/
 .env.example
-fines_service/test/
-fines_service/pytest.ini
-fines_service/conftest.py
 *.log
 .DS_Store

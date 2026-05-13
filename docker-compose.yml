@@ -126,7 +126,7 @@ services:
       start_period: 30s
 
   postgres_db:
-    image: postgres:13
+    image: postgres:14
     container_name: postgres_db
     restart: unless-stopped
     environment:
